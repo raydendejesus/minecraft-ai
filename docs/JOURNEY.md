@@ -117,6 +117,15 @@ build a castle, and build a redstone mini PC.
 - the duel then **stalled at exactly 146/200** for three rounds. Duels were only 15% of
   practice, so they barely moved the score that decides saving. Fix: focused practice on the
   failing test.
+- with focused practice it **passed all 4 tests after 3 rounds**: 100% / 96% / 82% against
+  hordes, and **92% against the PvP bot**, far past the teacher's 60%.
+
+## 13. The black screens are power, not heat
+Three times during training the screens went black and the GPU froze, at 78-81°C each time,
+always under the temperature limit (the guard logs every 10 seconds). It's the same
+power-delivery issue Rayden's PC has had since August: sudden sustained GPU load drops the
+display. A temperature limit can't prevent it; reseating the GPU power cables (and/or a lower
+GPU power limit) is the real fix. GPU training is paused until that's sorted.
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the

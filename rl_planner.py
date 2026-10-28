@@ -105,11 +105,16 @@ def play_batch(model, n, greedy=False, max_steps=40):
 
 
 def win_rate(model, games=200):
+    """Win rate on the SAME set of games every time (fixed random seed), so a model is only
+    saved when it's genuinely better, not because it got an easy batch of test games."""
     model.eval()
+    saved = random.getstate()
+    random.seed(777)
     wins = 0
     for _ in range(games // 50):
         r, _ = play_batch(model, 50, greedy=True)
         wins += sum(x > 0 for x in r)
+    random.setstate(saved)
     return wins / games
 
 

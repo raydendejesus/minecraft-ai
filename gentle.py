@@ -86,7 +86,7 @@ def gpu():
             _gpu = (float(out[0]), float(out[1]), float(out[2]))
         except Exception:
             pass
-        if time.time() - _log_time > 30:
+        if time.time() - _log_time > 10:
             _log_time = time.time()
             new = not os.path.exists(TEMP_LOG)
             with open(TEMP_LOG, "a", encoding="utf-8") as f:
