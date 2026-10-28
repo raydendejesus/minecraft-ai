@@ -1,0 +1,11 @@
+{
+  "port": 8840,
+  "player": "",
+  "ollama_host": "http://localhost:11434",
+  "chat_model": "dolphin3",
+  "vision_model": "qwen2.5vl:7b",
+  "bds_exe": "O:\\BedrockServer\\bedrock_server.exe",
+  "bds_dir": "O:\\BedrockServer",
+  "chat_regex": "(?i)chat:\\s*<([^>]+)>\\s*(.*)",
+  "chat_prefix": "!mc "
+}

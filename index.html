@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minecraft AI</title>
+<style>
+  :root { --bg:#16181d; --panel:#1f2229; --line:#2e323b; --text:#e6e6e6; --dim:#8b919c;
+          --grass:#6aaa3a; --dirt:#8a5a35; --warn:#e0a040; --bad:#d9534f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif;
+         display:grid; grid-template-columns: 1fr 340px; height:100vh; }
+  main { display:flex; flex-direction:column; min-width:0; }
+  header { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:10px 14px;
+           border-bottom:3px solid var(--grass); background:var(--panel); }
+  header h1 { font-size:17px; margin:0 8px 0 0; }
+  input, textarea, button { font:inherit; color:var(--text); background:#14161a; border:1px solid var(--line);
+                            border-radius:6px; padding:6px 9px; }
+  textarea { width:100%; font-family:Consolas, monospace; font-size:13px; resize:vertical; }
+  button { cursor:pointer; background:#2a2e37; }
+  button:hover { border-color:var(--grass); }
+  button.go { background:var(--grass); color:#0d1a05; border-color:var(--grass); font-weight:600; }
+  .chip { font-size:12px; padding:3px 8px; border-radius:99px; background:#2a2e37; color:var(--dim); }
+  .chip.on { background:#24401a; color:#a8e07c; }
+  #log { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .msg { max-width:760px; padding:10px 13px; border-radius:8px; background:var(--panel); }
+  .msg.you { align-self:flex-end; background:#2b3a52; }
+  .who { font-size:12px; color:var(--dim); margin-bottom:3px; }
+  .card { margin-top:8px; border:1px solid var(--line); border-radius:6px; padding:8px; background:#191b20; }
+  .req { font-family:Consolas, monospace; font-size:13px; color:#a8e07c; margin-bottom:5px; }
+  .tools { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .note { font-size:12px; color:var(--warn); margin-top:6px; }
+  .err { color:var(--bad); }
+  form { display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--line); background:var(--panel); }
+  form input { flex:1; }
+  aside { border-left:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column;
+          min-height:0; padding:12px; gap:10px; }
+  aside h2 { font-size:13px; margin:4px 0 0; color:var(--dim); text-transform:uppercase; letter-spacing:.05em; }
+  pre { margin:0; font-size:11.5px; white-space:pre-wrap; word-break:break-all; background:#121418;
+        padding:8px; border-radius:6px; overflow-y:auto; }
+  #console { flex:1; min-height:120px; }
+  .help { font-size:12.5px; color:var(--dim); }
+  .help code { color:#a8e07c; }
+  @media (max-width: 900px) { body { grid-template-columns:1fr; height:auto; } aside { border-left:0; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>⛏️ Minecraft AI</h1>
+    <input id="player" placeholder="your Minecraft name" size="16">
+    <button id="srv">Start server</button>
+    <button onclick="post('/api/anchor').then(()=>sys('Build spot moved 3 blocks in front of you.'))">📍 Build here</button>
+    <button onclick="post('/api/undo').then(r=>sys(r.ok?'Undid the last build.':'Nothing to undo.'))">↩ Undo</button>
+    <button onclick="post('/api/reset').then(()=>sys('Started a fresh conversation.'))">New chat</button>
+    <span id="chips"></span>
+  </header>
+  <div id="log"></div>
+  <form id="f">
+    <label id="pic" title="Attach a photo of a build"><button type="button" onclick="$('#file').click()">📷</button></label>
+    <input id="file" type="file" accept="image/*" hidden>
+    <input id="msg" placeholder="Tell it what to build… e.g. a detailed 7x7 spruce cabin, door facing east" autocomplete="off">
+    <button class="go">Send</button>
+  </form>
+</main>
+<aside>
+  <h2>How correcting works</h2>
+  <div class="help">
+    <b>Dolphin got it wrong</b> (wrong size, block, door side…)? Just tell it in chat — it undoes and rebuilds.<br>
+    <b>Want detail?</b> Say "make it detailed", or attach a 📷 photo of a build.<br>
+    <b>Builder got it wrong</b> (the commands are bad)? Edit the commands, hit <b>Fix &amp; rebuild</b>. That's saved as a lesson.<br>
+    <b>Right now?</b> Hit 👍 so Dolphin remembers what you meant.<br>
+    Then <b>Retrain</b> so the Builder actually learns your fixes.<br><br>
+    In game: <code>!mc build a tower</code>, <code>!mc here</code>, <code>!mc undo</code>, <code>!mc good</code>
+  </div>
+  <button id="retrain">🧠 Retrain Builder</button>
+  <pre id="train"></pre>
+  <h2>Server console</h2>
+  <pre id="console"></pre>
+</aside>
+<script>
+const $ = s => document.querySelector(s);
+const log = $('#log');
+let status = {};
+
+async function post(url, body = {}) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const j = await r.json();
+  if (j.error) { sys('⚠ ' + j.error, true); throw new Error(j.error); }
+  return j;
+}
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function scroll() { log.scrollTop = log.scrollHeight; }
+function sys(text, bad) { const m = el('div', 'msg' + (bad ? ' err' : ''), text); log.append(m); scroll(); }
+
+function you(text) {
+  const m = el('div', 'msg you'); m.append(el('div', 'who', 'you'), el('div', '', text)); log.append(m); scroll();
+}
+
+function aiTurn(out) {
+  const m = el('div', 'msg');
+  m.append(el('div', 'who', 'Dolphin'), el('div', '', out.say));
+  if (out.seen) { const d = el('details'); d.append(el('summary', 'who', '👁 what the vision model saw in your photo'), el('div', 'who', out.seen)); m.append(d); }
+  if (out.undone) m.append(el('div', 'note', '↩ undid the previous build first'));
+  for (const s of out.skipped || []) m.append(el('div', 'note', 'skipped a bad piece: ' + s));
+  const areas = [];
+  for (const r of out.results) {
+    const c = el('div', 'card');
+    const off = r.offset.some(v => v) ? `at ${r.offset.join(' ')}  ` : '';
+    c.append(el('div', 'who', 'Dolphin → Builder'), el('div', 'req', off + r.request), el('div', 'who', 'Builder → Minecraft'));
+    const ta = el('textarea'); ta.value = r.commands; ta.rows = Math.min(10, r.commands.split('\n').length + 1);
+    c.append(ta); m.append(c); areas.push([r, ta]);
+  }
+  if (out.results.length) {
+    if (!out.server) m.append(el('div', 'note', 'Server isn\'t running, so nothing was built. Start it to build in-world.'));
+    const tools = el('div', 'tools');
+    const good = el('button', '', '👍 Correct — remember this');
+    good.onclick = () => post('/api/good').then(r => { sys(r.ok ? 'Saved! Dolphin will use this as an example.' : 'Nothing new to save.'); good.disabled = true; });
+    const fix = el('button', '', '🔧 Fix commands & rebuild');
+    fix.onclick = () => post('/api/rebuild', {results: areas.map(([r, ta]) => ({...r, commands: ta.value}))})
+      .then(r => sys(`Rebuilt. Saved ${r.saved} correction(s) for the Builder. Hit Retrain when you've collected a few.`));
+    tools.append(good, fix); m.append(tools);
+  }
+  log.append(m); scroll();
+}
+
+let photo = null;
+$('#file').onchange = () => {
+  const f = $('#file').files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { photo = rd.result; $('#pic button').textContent = '📷✓'; };
+  rd.readAsDataURL(f);
+};
+
+$('#f').onsubmit = async e => {
+  e.preventDefault();
+  const text = $('#msg').value.trim(); if (!text && !photo) return;
+  $('#msg').value = ''; you(text || '(photo)');
+  if (photo) { const img = el('img'); img.src = photo; img.style.cssText = 'max-width:240px;border-radius:6px;align-self:flex-end'; log.append(img); }
+  const body = {message: text, image: photo ? photo.split(',')[1] : null};
+  photo = null; $('#file').value = ''; $('#pic button').textContent = '📷';
+  const thinking = el('div', 'msg who', body.image ? 'looking at your photo…' : 'thinking…'); log.append(thinking); scroll();
+  try { aiTurn(await post('/api/chat', body)); } catch {} finally { thinking.remove(); }
+};
+
+$('#player').onchange = () => post('/api/player', {player: $('#player').value});
+$('#srv').onclick = () => post('/api/server', {action: status.server ? 'stop' : 'start'}).then(refresh);
+$('#retrain').onclick = () => post('/api/retrain').then(r => sys(r.ok ? 'Retraining the Builder on your corrections (a minute or so)…' : 'Already training.'));
+
+async function refresh() {
+  try { status = await (await fetch('/api/status')).json(); } catch { return; }
+  if (document.activeElement !== $('#player') && !$('#player').value) $('#player').value = status.player;
+  $('#srv').textContent = status.server ? 'Stop server' : 'Start server';
+  const chip = (on, t) => `<span class="chip ${on ? 'on' : ''}">${t}</span> `;
+  $('#chips').innerHTML = chip(status.server, status.server ? 'server on' : 'server off') +
+    chip(status.builder_ready, status.builder_ready ? 'builder trained' : 'builder untrained') +
+    chip(status.training, status.training ? 'training…' : `${status.corrections} fixes · ${status.lessons} 👍`);
+  $('#retrain').disabled = status.training;
+  $('#train').textContent = status.train_log.join('\n') || 'No retraining yet.';
+  const con = $('#console'), atBottom = con.scrollTop + con.clientHeight >= con.scrollHeight - 5;
+  con.textContent = status.console.join('\n');
+  if (atBottom) con.scrollTop = con.scrollHeight;
+}
+setInterval(refresh, 2000); refresh();
+sys('Hi! Set your Minecraft name up top, start the server, join it, then tell me what to build. The build spot is placed 3 blocks in front of you; builds grow east (+x) and south (+z) from there.');
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Mojang's Bedrock Dedicated Server copy (its license doesn't allow redistribution)
+lab_server/
+
+# trained brains are downloaded separately from the GitHub Release, not stored in the repo
+*.pt
+distill_*.jsonl
+brain_log_old_crash.txt
+
+# your own corrections and lessons (personal; delete this line to share them)
+corrections.jsonl
+planner_corrections.jsonl
+fight_corrections.jsonl
+qwen_lessons.jsonl
+learn_state.json
+
+# logs
+*_log.txt
+*_run.txt
+*_console.txt
+train_log.txt
+gpu_temp_log.csv
+pipeline_queue.json
