@@ -34,8 +34,8 @@ a specialist that knows one job very well.
 
 | Model | Job | Trained by | Result |
 |---|---|---|---|
-| **Builder** | request line → Bedrock `/fill` and `/setblock` commands (houses, towers, castle walls, roofs, bridges, farms...) | a hand-written "teacher" that generates endless examples | **100%** exact-match on requests it has never seen |
-| **Redstone** | logic gates, adders, latches, RAM, written in a compact parts language | designs that first passed on a real Bedrock server | **11 circuits pass** in the real game, up to a full adder and a byte of RAM |
+| **Builder** (`builder.pt`) | request line → Bedrock `/fill` and `/setblock` commands (houses, walls, floors, boxes, roofs, stairs, pillars) | a hand-written "teacher" that generates endless examples | **100%** exact-match on requests it has never seen |
+| **Redstone designs** | logic gates, adders, latches, RAM, in a compact parts language | built and tested on a real Bedrock server (`redstone_lib.py`) | **11 circuits pass** in the real game, up to a full adder and a byte of RAM. The model that learns them (plus 9 newer structures like towers and castle walls) is the merged Brain, coming after the final exam |
 | **Survival Planner** | reads goal + inventory + hunger, picks the next move (chop, mine, craft, smelt, hunt, eat, build) | teacher, then reinforcement learning (RL) in a survival simulator | **81%** of simulated survival games won (started at 25%) |
 | **Fight model** | reads health, gear and nearby mobs, picks a move (attack, W-tap combo, shoot, shield, kite, eat, dig in and hide, flee) | teacher, then RL in a combat simulator | beats hordes of 2/3/5 mobs **100% / 93% / 76%**; **73%** vs a hard-coded PvP bot (teacher: 100/97/63/60%) |
 | **Miner** | moves and mines through a voxel world with real body rules | A* pathfinding + mining strategy (not a trained model yet) | found diamonds in **20 of 20** worlds, about 11 min game time each |
@@ -48,7 +48,7 @@ you want. Put the `.pt` files in the project folder next to the code.
 
 | Brain | File | Size | Needs |
 |---|---|---|---|
-| Builder (buildings + redstone circuits) | `builder.pt` | ~19 MB | the code; Dolphin via Ollama if you want to chat instead of typing request lines |
+| Builder (buildings) | `builder.pt` | ~19 MB | the code; Dolphin via Ollama if you want to chat instead of typing request lines |
 | Survival Planner | `planner.pt` | ~19 MB | the code |
 | Fight model | `fight.pt` | ~19 MB | the code |
 | Brain (all of them in one, coming after the final exam) | `brain.pt` | ~56 MB | the code |
@@ -59,14 +59,14 @@ Every brain is about 5 million parameters and runs on any NVIDIA GPU, or slowly 
 
 | Setup | Good at | Weak at / missing |
 |---|---|---|
-| **Builder only** | The most complete piece today: chat "build me a castle wall" and it builds on a real Bedrock server. Houses, towers, roofs, bridges, farms, redstone gates/adders/RAM, undo, and learning from your fixes. Smallest download. | Builds instantly with commands (creative style). It doesn't gather resources, survive or fight. Chatting needs Dolphin (8B) on top. |
+| **Builder only** | The most complete piece today: chat "build me a cobblestone hut, door facing south" and it builds on a real Bedrock server. Houses, walls, roofs, stairs, detailed builds from many pieces, undo, and learning from your fixes. Smallest download. | Builds instantly with commands (creative style). It doesn't gather resources, survive or fight. Redstone and the newer structures (towers, castle walls, bridges) arrive with the Brain. Chatting needs Dolphin (8B) on top. |
 | **Planner only** | Survival decisions: what to gather, craft, smelt and eat next, toward any goal. 81% of simulated games won. Tiny and fast. | Decides only: it outputs moves like "mine raw_iron", it doesn't move a character itself yet. Tested in the simulator, not in a live world. |
 | **Fight only** | Combat judgment against 28 mob types: when to fight, kite, block, combo, shoot, eat, hide or run. Beats hordes of 2/3/5 at 100/93/76%. | Decides only, like the Planner. Simulator-tested. The PvP duel exam isn't passed yet. |
 | **Builder + Planner** | Plan what a build needs, then build it. The base for the "gather the materials, then build the castle" exam. | Nothing defends it, and the Planner still has no real-world body. |
 | **Builder + Fight** | Builds, and knows how to handle mobs that show up while it works. | No survival planning: it can't work out gathering or crafting. |
 | **Planner + Fight** | A full survival mind: gather, craft and eat, and switch to combat when attacked. The core of a survival bot. | Can't design buildings or circuits. Both decide only (no in-game body yet). |
 | **All three** | Everything: build, plan and fight, each at its best quality. | Three downloads (~57 MB) and three models loaded. |
-| **Brain** (when released) | All three skills in one model, one download, one file to load. | Slightly larger, and a merged model can be a little less sharp at each single job than the dedicated specialist; that's checked against the specialists before release. |
+| **Brain** (when released) | All three skills in one model, one download, one file to load, plus redstone circuits, logic and the newer structures (towers, pyramids, castle walls, bridges, farms). | Slightly larger, and a merged model can be a little less sharp at each single job than the dedicated specialist; that's checked against the specialists before release. |
 
 ## How each part works
 
