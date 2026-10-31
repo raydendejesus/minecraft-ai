@@ -204,6 +204,49 @@ def adder(bits, spacing=20):
     return parts, inputs, outs
 
 
+def decoder(bits):
+    """Address decoder: n address levers -> exactly one of 2^n output lines is on.
+
+    Each address bit gets two overhead lines running south (y=2 on stone): the bit and its
+    inverse, 3 blocks apart. Each output is a row of floor dust running east under them. A row
+    collects every line that disagrees with its address through a one-way tap; if any is on,
+    the inverter at the end of the row switches that output off.
+    Tap at line x, row z: dust (x+1, y=1, z+2) steps down off the line onto stone (x+1, y=0, z+2),
+    and a repeater at (x+1, z+1) reads that stone and feeds the row at (x+1, z).
+    Returns (parts, {input name: position}, output lamps, row positions)."""
+    rows = 1 << bits
+    last_z = 4 * (rows - 1) + 2       # rows 4 apart: at 3, a row's dust climbs into the tap beside it
+    parts, inputs, lines = [], {}, {}
+
+    def overhead(x):
+        out = [dust(x, -4), block(x, -3), dust(x, -3, y=1), block(x, -2, y=1), dust(x, -2, y=2)]
+        for z in range(-1, last_z + 1):
+            out.append(block(x, z, y=1))
+            # every 8 starting at z=4: the climb up costs 3 strength, and z=2,6,10.. are tap points
+            out.append(rep(x, z, to="south", y=2) if z % 8 == 4 else dust(x, z, y=2))
+        return out
+
+    for k in range(bits):
+        x = 6 * k
+        inputs[f"A{k}"] = (x, -6)
+        parts += [lever(x, -6), dust(x, -5), rep(x + 1, -5), block(x + 2, -5), torch(x + 3, -5, "west")]
+        parts += overhead(x) + overhead(x + 3)
+        lines[k] = (x, x + 3)                         # (line for bit, line for its inverse)
+    width = 6 * bits
+    outs = []
+    for i in range(rows):
+        z = 4 * i
+        parts += [rep(12, z) if width > 13 else dust(12, z)] if width > 12 else []
+        parts += [dust(x, z) for x in range(0, width) if x != 12]
+        parts += [rep(width, z), block(width + 1, z), torch(width + 2, z, "west"), lamp(width + 3, z)]
+        outs.append((width + 3, z))
+        for k in range(bits):
+            # bit should be 1 here -> a 0 is a mismatch, so tap the inverse line, and vice versa
+            x = lines[k][1] if i >> k & 1 else lines[k][0]
+            parts += [block(x + 1, z + 2), dust(x + 1, z + 2, y=1), rep(x + 1, z + 1, to="north")]
+    return parts, inputs, outs
+
+
 GATES = {"not": g_not, "or": g_or, "nor": g_nor, "nand": g_nand, "and": g_and, "xor": g_xor,
          "half_adder": g_half_adder, "full_adder": g_full_adder}
 

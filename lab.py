@@ -86,6 +86,11 @@ class Lab:
         for y in range(FLOOR_Y + 1, FLOOR_Y + 13, 3):
             self.cmd(f"fill -8 {y} -8 79 {y + 2} 79 air")
 
+    def sync(self, timeout=600):
+        """Wait until the server has worked through every command sent so far (big builds
+        queue up faster than it can place them)."""
+        self.block_at(-8, FLOOR_Y, -8, "smooth_stone", timeout=timeout)
+
     def block_at(self, x, y, z, expected, timeout=5):
         """True if the block at x y z is `expected` (block states optional). Waits for the
         reply that names these coordinates, so a slow server can't cause a misread."""
