@@ -25,6 +25,8 @@ learn_state.json
 train_log.txt
 castle_*_10.txt
 adder4_run.txt
+ram16_*.txt
+ram128_*.txt
 planner_compare.txt
 diamonds_recheck.txt
 gpu_temp_log.csv

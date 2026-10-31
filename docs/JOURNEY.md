@@ -163,6 +163,20 @@ it has to.
   sums** on a real server, including 15 + 1 rippling through every bit. 709 parts, carry wires
   laid by the router.
 
+## 16. Addressable RAM
+- **4-bit address decoder:** exactly one of 16 lines on for each address, 1,724 parts. Getting
+  there took three fixes found by reading signals in the game: rows 3 apart linked up with the
+  taps beside them (dust climbs one block), address lines died before the far rows, and big
+  builds outran the server, so tests now wait for it to catch up.
+- **RAM cell:** a locking repeater stores the bit, and a comparator in subtract mode lets it
+  reach the output wires only when that word is addressed.
+- a 4-word test read all zeros. The cell was fine; the test was reading the wrong blocks (height
+  and depth swapped), and the "not selected" wire was too weak to reach the later bits.
+- **16-byte stick:** 8,489 parts, 32 of 32 reads correct on the first full-size run. That test only
+  used values up to 76, so the top bit was checked again with values that use all 8 bits.
+- the old estimate for 1 KB (~200k parts) was too low: at this design's ~66 parts per bit it's
+  about 500k per stick.
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

@@ -69,7 +69,9 @@ we just check that each one shows up and works at least once:
 
 ## 3. Redstone mini PC (on the lab server, `lab.py`) - to do
 Built in stages; each stage has to pass its lab test before the next:
-1. 2 RAM sticks of 16 bytes (scaling toward 1 KB with a tiler: 1 KB = 8,192 bits, ~200k parts)
+1. 2 RAM sticks of 16 bytes - one stick built on the lab server, 8,489 parts (`test_ram.py`).
+   Scaling toward 1 KB: at this design's ~66 parts per bit, 1 KB is about 500,000 parts per
+   stick, so it would need a much denser cell design. How far it can scale is still to be found.
 2. 4-bit ALU (add/subtract) - 4-bit adder passes (`test_adder.py`), subtract still to do
 3. 4-bit CPU: program counter, instruction decode, registers
 4. "Hard drive": storage that keeps its data (ROM / locked latches)

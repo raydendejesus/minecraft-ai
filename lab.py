@@ -21,7 +21,10 @@ FLOOR_Y = 100
 
 
 class Lab:
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, far_z=120):
+        """far_z: how far south the test area reaches. A ticking area is limited to 100 chunks,
+        so long builds use several, chained along z."""
+        self.far_z = far_z
         self.verbose = verbose
         self.lines = queue.Queue()
         self.proc = None
@@ -50,10 +53,12 @@ class Lab:
         else:
             raise RuntimeError("lab server didn't start")
         self.cmd("tickingarea remove_all")
-        self.cmd("tickingarea add -16 0 -16 79 319 79 lab true")
+        # 9 chunks wide x 11 long = 99 chunks per area
+        for n, z0 in enumerate(range(-16, self.far_z + 1, 176)):
+            self.cmd(f"tickingarea add -16 0 {z0} 127 319 {z0 + 175} lab{n} true")
         self.cmd("gamerule doDaylightCycle false")
         for _ in range(120):                     # wait until the far corner has actually loaded
-            if "Block placed" in " ".join(self.cmd(f"setblock 78 {FLOOR_Y} 78 stone", wait=0.5)):
+            if "Block placed" in " ".join(self.cmd(f"setblock 120 {FLOOR_Y} {self.far_z} stone", wait=0.5)):
                 break
         else:
             raise RuntimeError("lab area didn't load")
@@ -82,9 +87,12 @@ class Lab:
 
     def reset_area(self):
         """Wipe the test area and lay a fresh stone floor."""
-        self.cmd(f"fill -8 {FLOOR_Y} -8 79 {FLOOR_Y} 79 smooth_stone")
-        for y in range(FLOOR_Y + 1, FLOOR_Y + 13, 3):
-            self.cmd(f"fill -8 {y} -8 79 {y + 2} 79 air")
+        # fills are size-limited, so one layer and 200 blocks of length at a time
+        for z0 in range(-8, self.far_z + 1, 200):
+            z1 = min(z0 + 199, self.far_z)
+            self.cmd(f"fill -8 {FLOOR_Y} {z0} 120 {FLOOR_Y} {z1} smooth_stone", wait=0.1)
+            for y in range(FLOOR_Y + 1, FLOOR_Y + 13):
+                self.cmd(f"fill -8 {y} {z0} 120 {y} {z1} air", wait=0.1)
 
     def sync(self, timeout=600):
         """Wait until the server has worked through every command sent so far (big builds

@@ -204,7 +204,87 @@ def adder(bits, spacing=20):
     return parts, inputs, outs
 
 
-def decoder(bits):
+def ram(addr_bits, word_bits):
+    """Addressable RAM: 2^addr_bits words of word_bits each.
+
+    Built east of the decoder, one row of cells per word. Each word has two wires running east:
+      R (z)    on when this word is NOT addressed (it's the decoder's mismatch row)
+      L (z+4)  on when this word is locked: not addressed, or write is off
+    Each bit is a cell 7 wide at column c, with overhead lines for data in (c) and data out (c+5):
+      tap off the data line -> repeater R1 at (c+2, z+2), which stores the bit. A lock repeater
+      at (c+2, z+3) reads L and freezes R1 whenever the word is locked.
+      Comparator at (c+3, z+2) in subtract mode: R1 at its rear, R at its side, so the bit only
+      gets through when this word is addressed. It drives a stone at (c+4, z+2), and dust on
+      that stone climbs into the data-out line, which runs north to a lamp.
+    Returns (parts, inputs, data-out lamps)."""
+    PITCH = 6
+    parts, inputs, _ = decoder(addr_bits, pitch=PITCH)
+    rows = 1 << addr_bits
+    width = 6 * addr_bits
+    # the decoder ends each row in an inverter + lamp; here the raw row is what we want
+    keep = []
+    for p in parts:
+        x, y, z, b = p
+        if y == 0 and x >= width and z >= 0 and z % PITCH == 0:
+            continue
+        keep.append(p)
+    parts = keep
+    last_z = PITCH * (rows - 1) + 2
+    # NOT(write) line
+    xn = width + 2
+    inputs["W"] = (width - 1, -5)
+    parts += [lever(width - 1, -5), rep(width, -5), block(width + 1, -5), torch(xn, -5, "west")]
+    parts += _overhead(xn, last_z, PITCH)
+    c0 = xn + 3
+    end = c0 + 7 * word_bits
+    outs = []
+    for i in range(rows):
+        z = PITCH * i
+        for x in range(width, end):
+            # refresh right after the decoder (it arrives weak), then on the free column between
+            # cells (c+6), never under a read or lock tap
+            refresh = x == width + 1 or (x >= c0 and (x - c0) % 14 == 6)
+            parts.append(rep(x, z) if refresh else dust(x, z))
+        # L row: a one-way copy of R, plus a tap from NOT(write)
+        parts += [rep(width, z + 1, to="south"), dust(width, z + 2), dust(width, z + 3)]
+        for x in range(width, end):
+            refresh = x >= c0 and (x - c0) % 14 == 6
+            parts.append(rep(x, z + 4) if refresh else dust(x, z + 4))
+        parts += [block(xn + 1, z + 2), dust(xn + 1, z + 2, y=1), rep(xn + 1, z + 3, to="south")]
+        for k in range(word_bits):
+            c = c0 + 7 * k
+            parts += [block(c + 1, z + 2), dust(c + 1, z + 2, y=1),   # tap off data-in
+                      rep(c + 2, z + 2),                              # R1, holds the bit
+                      rep(c + 2, z + 3, to="north"),                  # lock, reads L
+                      comparator(c + 3, z + 2, subtract=True),
+                      rep(c + 3, z + 1, to="south"),                  # R into the comparator's side
+                      block(c + 4, z + 2), dust(c + 4, z + 2, y=1)]   # up into data-out
+    for k in range(word_bits):
+        c = c0 + 7 * k
+        inputs[f"D{k}"] = (c, -6)
+        parts += [lever(c, -6), dust(c, -5)] + _overhead(c, last_z, PITCH)
+        # data-out line runs north to a lamp
+        o = c + 5
+        for z in range(-1, last_z + 1):
+            parts.append(block(o, z, y=1))
+            parts.append(rep(o, z, to="north", y=2) if z % (2 * PITCH) == PITCH - 1 else dust(o, z, y=2))
+        parts += [block(o, -2, y=1), lamp(o, -2, y=2)]
+        outs.append((o, 2, -2))                       # x, y, z
+    return parts, inputs, outs
+
+
+def _overhead(x, last_z, pitch):
+    """A line that climbs from the floor at z=-4 to y=2 and runs south on stone. Tap points sit
+    at z = 2 mod pitch, so repeaters go at z = 0 mod pitch (pitch 6) or every 8 (pitch 4)."""
+    out = [dust(x, -4), block(x, -3), dust(x, -3, y=1), block(x, -2, y=1), dust(x, -2, y=2)]
+    for z in range(-1, last_z + 1):
+        out.append(block(x, z, y=1))
+        hit = z % 8 == 4 if pitch == 4 else (z % pitch == 0 and z > 0)
+        out.append(rep(x, z, to="south", y=2) if hit else dust(x, z, y=2))
+    return out
+
+
+def decoder(bits, pitch=4):
     """Address decoder: n address levers -> exactly one of 2^n output lines is on.
 
     Each address bit gets two overhead lines running south (y=2 on stone): the bit and its
@@ -215,27 +295,19 @@ def decoder(bits):
     and a repeater at (x+1, z+1) reads that stone and feeds the row at (x+1, z).
     Returns (parts, {input name: position}, output lamps, row positions)."""
     rows = 1 << bits
-    last_z = 4 * (rows - 1) + 2       # rows 4 apart: at 3, a row's dust climbs into the tap beside it
+    last_z = pitch * (rows - 1) + 2   # at least 4 apart: at 3, a row's dust climbs into the tap beside it
     parts, inputs, lines = [], {}, {}
-
-    def overhead(x):
-        out = [dust(x, -4), block(x, -3), dust(x, -3, y=1), block(x, -2, y=1), dust(x, -2, y=2)]
-        for z in range(-1, last_z + 1):
-            out.append(block(x, z, y=1))
-            # every 8 starting at z=4: the climb up costs 3 strength, and z=2,6,10.. are tap points
-            out.append(rep(x, z, to="south", y=2) if z % 8 == 4 else dust(x, z, y=2))
-        return out
 
     for k in range(bits):
         x = 6 * k
         inputs[f"A{k}"] = (x, -6)
         parts += [lever(x, -6), dust(x, -5), rep(x + 1, -5), block(x + 2, -5), torch(x + 3, -5, "west")]
-        parts += overhead(x) + overhead(x + 3)
+        parts += _overhead(x, last_z, pitch) + _overhead(x + 3, last_z, pitch)
         lines[k] = (x, x + 3)                         # (line for bit, line for its inverse)
     width = 6 * bits
     outs = []
     for i in range(rows):
-        z = 4 * i
+        z = pitch * i
         parts += [rep(12, z) if width > 13 else dust(12, z)] if width > 12 else []
         parts += [dust(x, z) for x in range(0, width) if x != 12]
         parts += [rep(width, z), block(width + 1, z), torch(width + 2, z, "west"), lamp(width + 3, z)]
@@ -314,6 +386,39 @@ def m_ram_byte():
 
 
 MEMORY = {"rs_latch": m_rs_latch, "d_latch": m_d_latch, "ram_byte": m_ram_byte}
+
+
+def to_fills(parts, at=(0, 0, 0)):
+    """Commands that build parts using as few as possible: straight runs of the same block
+    become one /fill. Lowest layer first, and stone before anything that hangs off it."""
+    ox, oy, oz = at
+    cells = {(x, y, z): b for x, y, z, b in parts}
+    done, out = set(), []
+
+    def order(c):
+        return (c[1], 0 if cells[c] == "stone" else 1, c[2], c[0])
+
+    for c in sorted(cells, key=order):
+        if c in done:
+            continue
+        x, y, z = c
+        b = cells[c]
+        run_x = 1
+        while cells.get((x + run_x, y, z)) == b and (x + run_x, y, z) not in done:
+            run_x += 1
+        run_z = 1
+        while cells.get((x, y, z + run_z)) == b and (x, y, z + run_z) not in done:
+            run_z += 1
+        if run_x >= run_z:
+            run = [(x + i, y, z) for i in range(run_x)]
+        else:
+            run = [(x, y, z + i) for i in range(run_z)]
+        done.update(run)
+        (x1, y1, z1), (x2, y2, z2) = run[0], run[-1]
+        name, *state = b.split(" ", 1)
+        states = f" {state[0]}" if state else ""
+        out.append(f"fill {x1 + ox} {y1 + oy} {z1 + oz} {x2 + ox} {y2 + oy} {z2 + oz} {name}{states}")
+    return out
 
 
 def to_commands(parts, at=(0, 0, 0)):
