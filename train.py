@@ -16,6 +16,7 @@ import torch
 import torch.nn.functional as F
 
 import gentle
+import live_feed
 from data import encode, fmt
 from model import DEFAULT_CONFIG, HERE, TinyGPT
 
@@ -108,6 +109,8 @@ def main():
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         gentle.step(time.time() - t_step)
+        live_feed.publish(model, f"{args.task} training", step, steps, loss.item(),
+                          lambda: task.sample(corrections), done=step == steps)
 
         if step % 100 == 0:
             print(f"step {step}/{steps}  loss {loss.item():.4f}  {time.time() - t0:.0f}s", flush=True)

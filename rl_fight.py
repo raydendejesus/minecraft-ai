@@ -22,6 +22,7 @@ import torch.nn.functional as F
 import fight_data as D
 import gentle
 import fight_sim as S
+import live_feed
 from model import HERE, TinyGPT
 from rl_planner import seq_logprobs
 from train import make_batch
@@ -180,6 +181,8 @@ def main():
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         gentle.step(time.time() - t_up)
+        live_feed.publish(model, "Fight model practicing", u, args.updates, sup.item(),
+                          lambda: D.sample(corrections), done=u == args.updates)
 
         if u % 10 == 0:
             log(f"update {u}/{args.updates}  avg reward {base:.3f}  {time.time() - t0:.0f}s")

@@ -33,3 +33,4 @@ gpu_temp_log.csv
 pipeline_queue.json
 decoder4_run.txt
 bds_update/
+live_state.json*

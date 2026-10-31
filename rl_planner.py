@@ -24,6 +24,7 @@ import torch
 import torch.nn.functional as F
 
 import gentle
+import live_feed
 import planner_data as P
 from data import encode, fmt
 from model import HERE, TinyGPT
@@ -168,6 +169,8 @@ def main():
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         gentle.step(time.time() - t_up)
+        live_feed.publish(model, "Survival Planner practicing", u, args.updates, sup.item(),
+                          lambda: P.sample(corrections), done=u == args.updates)
 
         if u % 10 == 0:
             log(f"update {u}/{args.updates}  avg reward {base:.3f}  wins {sum(r > 0 for r in reward)}/{len(reward)}  {time.time() - t0:.0f}s")

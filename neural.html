@@ -6,263 +6,175 @@
 <title>Neural Viewer</title>
 <style>
   :root {
-    --bg:#0a0b24; --panel:#12133a; --panel2:#1a1a4a; --line:#2d2a6e; --text:#e8e4ff; --dim:#9d97cf;
-    --violet:#a855f7; --pink:#d946ef; --blue:#3b5bfd; --cyan:#60a5fa;
+    --bg:#0a0b24; --panel:#12133a; --panel2:#1a1a4a; --line:#2d2a6e; --text:#e8e4ff; --dim:#a39dd4;
+    --violet:#a855f7; --pink:#d946ef; --blue:#3b5bfd; --good:#7ee2b8; --bad:#fca5e4;
   }
   * { box-sizing:border-box; }
   body { margin:0; background:radial-gradient(1100px 600px at 20% -10%, #241a63 0%, var(--bg) 60%); background-color:var(--bg);
          color:var(--text); font:15px/1.45 system-ui, "Segoe UI", sans-serif; min-height:100vh; }
-  header { padding:18px 22px 8px; }
-  h1 { margin:0; font-size:23px; letter-spacing:.2px; }
+  .wrap { max-width:1240px; margin:0 auto; padding:18px 22px 26px; }
+  header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  h1 { margin:0; font-size:23px; }
   h1 span { color:var(--violet); }
-  header p { margin:3px 0 0; color:var(--dim); font-size:13.5px; }
-  .bar { display:flex; gap:8px; flex-wrap:wrap; padding:8px 22px; align-items:stretch; }
-  select, input, button { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line);
-                          border-radius:8px; padding:8px 11px; }
-  input#text { flex:1; min-width:240px; font-family:Consolas, monospace; font-size:13.5px; }
-  button { cursor:pointer; background:var(--panel2); }
-  button:hover { border-color:var(--violet); }
-  button.go { background:linear-gradient(135deg, var(--violet), var(--blue)); border:0; font-weight:600; color:#fff; }
-  button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--pink); outline-offset:1px; }
-  main { display:grid; grid-template-columns:minmax(0,1fr) 310px; gap:14px; padding:8px 22px 22px; }
-  .card { background:color-mix(in srgb, var(--panel) 88%, transparent); border:1px solid var(--line); border-radius:12px; padding:13px 14px; }
+  .dot { width:12px; height:12px; border-radius:50%; background:#3a3a78; flex:none; }
+  .dot.on { background:var(--pink); box-shadow:0 0 12px var(--pink); }
+  #clock { margin-left:auto; color:var(--dim); font-size:13px; font-variant-numeric:tabular-nums; }
+  .card { background:color-mix(in srgb, var(--panel) 90%, transparent); border:1px solid var(--line); border-radius:12px; padding:14px 15px; }
   .card h2 { margin:0 0 8px; font-size:12.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--dim); font-weight:600; }
-  #net { width:100%; height:440px; display:block; }
-  .left { display:flex; flex-direction:column; gap:14px; min-width:0; }
-  .right { display:flex; flex-direction:column; gap:14px; min-width:0; }
-  .tape { font-family:Consolas, monospace; font-size:13.5px; line-height:1.55; word-break:break-all; max-height:130px; overflow-y:auto; }
-  .tape i { font-style:normal; color:var(--dim); }
-  .tape b { font-weight:400; color:#fff; }
-  .tape b.now { background:var(--violet); color:#fff; border-radius:3px; padding:0 2px; }
-  .controls { display:flex; gap:8px; align-items:center; margin-top:10px; }
-  .controls input[type=range] { flex:1; padding:0; accent-color:var(--violet); }
-  .row { display:grid; grid-template-columns:30px 1fr 50px; gap:8px; align-items:center; font-size:13px; margin:3px 0; }
-  .row .t { font-family:Consolas, monospace; text-align:center; background:var(--panel2); border-radius:5px; }
-  .track { height:10px; background:var(--panel2); border-radius:5px; overflow:hidden; }
-  .fill { height:100%; background:linear-gradient(90deg, var(--blue), var(--violet)); border-radius:5px; }
-  .num { text-align:right; color:var(--dim); font-variant-numeric:tabular-nums; font-size:12.5px; }
-  .big { font-size:27px; font-weight:700; line-height:1.1; }
-  .stat { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin-top:10px; font-size:13px; }
-  .stat div b { display:block; font-size:15.5px; font-weight:650; }
-  .stat div { color:var(--dim); }
-  .stat div b { color:var(--text); }
-  .grp { display:grid; grid-template-columns:1fr 62px; font-size:12.5px; margin-top:6px; color:var(--dim); }
-  #attn { width:100%; height:150px; display:block; }
-  .hint { color:var(--dim); font-size:12.5px; margin:7px 0 0; }
-  .msg { color:#fca5e4; padding:4px 22px; font-size:14px; }
-  @media (max-width:900px) { main { grid-template-columns:minmax(0,1fr); padding:8px 16px 18px; } header, .bar { padding-left:16px; padding-right:16px; } #net { height:330px; } }
+  .now { margin-bottom:14px; }
+  #job { font-size:21px; font-weight:650; overflow-wrap:anywhere; }
+  #detail { color:var(--dim); font-size:14px; margin-top:2px; overflow-wrap:anywhere; min-height:20px; }
+  .bar { height:9px; background:var(--panel2); border-radius:5px; overflow:hidden; margin-top:10px; }
+  .fill { height:100%; width:0; background:linear-gradient(90deg, var(--blue), var(--violet)); transition:width .6s; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(135px, 1fr)); gap:10px; margin-top:12px; }
+  .stats div { background:var(--panel2); border-radius:9px; padding:8px 11px; font-size:12.5px; color:var(--dim); }
+  .stats b { display:block; color:var(--text); font-size:16px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .stats .hot b { color:var(--bad); }
+  .grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; }
+  .req { font-family:Consolas, monospace; font-size:13px; color:var(--dim); overflow-wrap:anywhere; margin-bottom:9px; }
+  .typing { font-family:Consolas, monospace; font-size:16px; line-height:1.5; background:#080922; border:1px solid var(--line);
+            border-radius:9px; padding:11px 13px; height:260px; overflow-y:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .cursor { display:inline-block; width:9px; height:1.05em; vertical-align:-2px; background:var(--pink); animation:blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation:none; } }
+  #result { font-size:14px; min-height:21px; margin-top:8px; }
+  .right { color:var(--good); } .wrong { color:var(--bad); }
+  #grid { width:100%; height:308px; display:block; background:#080922; border:1px solid var(--line); border-radius:9px; }
+  .note { color:var(--dim); font-size:13px; margin:8px 0 0; }
+  .empty { color:var(--dim); padding:30px 8px; text-align:center; font-size:15px; }
+  [hidden] { display:none !important; }
+  @media (max-width:900px) { .wrap { padding:14px 16px 20px; } .grid2 { grid-template-columns:minmax(0,1fr); } }
 </style>
 </head>
 <body>
-<header>
-  <h1>Neural <span>Viewer</span></h1>
-  <p>Watch a trained Minecraft AI model think, one character at a time.</p>
-</header>
-<form class="bar" id="f">
-  <select id="brain" aria-label="Which brain"></select>
-  <input id="text" aria-label="Input for the model" autocomplete="off">
-  <button class="go">Run</button>
-</form>
-<div class="msg" id="msg" role="status"></div>
-<main>
-  <div class="left">
-    <section class="card">
-      <h2>Neurons and pathways</h2>
-      <canvas id="net" role="img" aria-label="Network diagram of layers, firing neurons and pathways"></canvas>
-      <div class="controls">
-        <button id="play" type="button">Play</button>
-        <input type="range" id="step" min="0" max="0" value="0" aria-label="Step through the answer">
-        <span class="num" id="pos">0 / 0</span>
-      </div>
-      <p class="hint">Each column is one layer, showing its 20 most active neurons out of 1,024. Brighter means firing harder.
-        Lines are real connections: pink pushes the next neuron up, blue holds it down.</p>
-    </section>
-    <section class="card">
-      <h2>What it reads and writes</h2>
-      <div class="tape" id="tape"></div>
-    </section>
-    <section class="card">
-      <h2>Attention: what each layer is looking at</h2>
-      <canvas id="attn" role="img" aria-label="Heat map of which characters each layer attends to"></canvas>
-      <p class="hint">Each row is a layer, each column a character it has read so far (the newest on the right). Brighter means it's paying more attention there.</p>
-    </section>
-  </div>
-  <div class="right">
-    <section class="card">
-      <h2>Next character guesses</h2>
-      <div id="guess"></div>
-    </section>
-    <section class="card">
-      <h2>Neurons firing by layer</h2>
-      <div id="firing"></div>
-    </section>
-    <section class="card">
-      <h2>How big it is</h2>
-      <div class="big" id="params">-</div>
-      <div class="hint" style="margin:2px 0 0" id="sizeName"></div>
-      <div class="stat" id="stats"></div>
-      <div id="groups" style="margin-top:9px"></div>
-    </section>
-  </div>
-</main>
+<div class="wrap">
+  <header>
+    <span class="dot" id="dot"></span>
+    <h1>Neural <span>Viewer</span></h1>
+    <span id="clock"></span>
+  </header>
+
+  <section class="card now" aria-live="polite">
+    <h2>Running on your PC now</h2>
+    <div id="job">Connecting...</div>
+    <div id="detail"></div>
+    <div class="bar" id="barWrap" hidden><div class="fill" id="bar"></div></div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="grid2" id="modelArea" hidden>
+    <div class="card">
+      <h2 id="typeTitle">What it's working on</h2>
+      <div class="req" id="req"></div>
+      <div class="typing" id="typing"></div>
+      <div id="result" role="status"></div>
+    </div>
+    <div class="card">
+      <h2 id="gridTitle">Every neuron</h2>
+      <canvas id="grid" role="img" aria-label="All neurons in each layer, brighter when firing"></canvas>
+      <p class="note">Each block is one layer's 1,024 neurons. Each dot is one neuron, brighter when firing harder.</p>
+    </div>
+  </section>
+
+  <section class="card empty" id="noModel" hidden></section>
+</div>
 <script>
 const $ = s => document.querySelector(s);
-let D = null, cur = 0, timer = null, brains = {};
+let shown = 0, typer = null, grids = null;
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-function sizeCanvas(c) {
-  const r = c.getBoundingClientRect(), s = window.devicePixelRatio || 1;
+function drawGrid() {
+  const c = $('#grid'), r = c.getBoundingClientRect(), s = window.devicePixelRatio || 1;
+  if (!r.width) return;
   c.width = r.width * s; c.height = r.height * s;
   const g = c.getContext('2d'); g.setTransform(s, 0, 0, s, 0, 0);
-  return [g, r.width, r.height];
-}
-
-function drawNet() {
-  const [g, W, H] = sizeCanvas($('#net'));
-  g.clearRect(0, 0, W, H);
-  if (!D) return;
-  const f = D.frames[cur], L = f.layers.length, N = f.layers[0].acts.length;
-  const left = 34, right = 34, top = 26, bottom = 12;
-  const xAt = l => left + (W - left - right) * (l / Math.max(1, L - 1));
-  const yAt = i => top + (H - top - bottom) * (i / (N - 1));
-  // pathways: drawn only where the sending neuron is active, so you see the live signal
-  g.lineCap = 'round';
-  for (let l = 0; l < L - 1; l++) {
-    const M = D.links[l], a = f.layers[l].acts;
-    let peak = 1e-6;
-    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) peak = Math.max(peak, Math.abs(M[i][j] * a[i]));
-    const edges = [];
-    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) edges.push([Math.abs(M[i][j] * a[i]) / peak, i, j, M[i][j]]);
-    edges.sort((p, q) => q[0] - p[0]);
-    for (const [v, i, j, w] of edges.slice(0, 26)) {
-      g.strokeStyle = w > 0 ? `rgba(217,70,239,${0.12 + v * 0.7})` : `rgba(96,165,250,${0.1 + v * 0.6})`;
-      g.lineWidth = 0.5 + v * 2;
-      const x1 = xAt(l), x2 = xAt(l + 1), mid = (x1 + x2) / 2;
-      g.beginPath(); g.moveTo(x1, yAt(i)); g.bezierCurveTo(mid, yAt(i), mid, yAt(j), x2, yAt(j)); g.stroke();
+  const W = r.width, H = r.height;
+  if (!grids) return;
+  const L = grids.length, cols = 3, rows = Math.ceil(L / cols);
+  const gap = 10, bw = (W - gap * (cols + 1)) / cols, bh = (H - gap * (rows + 1) - rows * 15) / rows;
+  grids.forEach((grid, l) => {
+    const x0 = gap + (l % cols) * (bw + gap), y0 = gap + Math.floor(l / cols) * (bh + gap + 15);
+    g.fillStyle = css('--dim'); g.font = '12px system-ui'; g.fillText('Layer ' + (l + 1), x0, y0 + 10);
+    const across = Math.ceil(Math.sqrt(grid.length * bw / bh)), down = Math.ceil(grid.length / across);
+    const cw = bw / across, ch = bh / down;
+    for (let i = 0; i < grid.length; i++) {
+      const v = grid.charCodeAt(i) - 48;
+      if (!v) continue;
+      const t = v / 9;
+      g.fillStyle = `rgb(${90 + 160 * t},${60 + 60 * t},${210 + 40 * t})`;
+      g.fillRect(x0 + (i % across) * cw, y0 + 15 + Math.floor(i / across) * ch, Math.max(1, cw - .5), Math.max(1, ch - .5));
     }
+  });
+}
+
+function typeOut(text, done) {
+  clearInterval(typer);
+  const box = $('#typing'); box.textContent = '';
+  const body = document.createTextNode(''), cursor = document.createElement('span');
+  cursor.className = 'cursor'; box.append(body, cursor);
+  let i = 0;
+  const step = Math.max(1, Math.ceil(text.length / 90));   // long answers type faster so it keeps up
+  typer = setInterval(() => {
+    body.appendData(text.slice(i, i + step)); i += step;
+    box.scrollTop = box.scrollHeight;
+    if (i >= text.length) { clearInterval(typer); cursor.remove(); done(); }
+  }, 25);
+}
+
+function stat(k, v, hot) {
+  const d = document.createElement('div'); if (hot) d.className = 'hot';
+  const b = document.createElement('b'); b.textContent = v; d.append(k, b); return d;
+}
+
+function show(s) {
+  $('#clock').textContent = s.clock;
+  const m = s.model, live = !!(m && m.live && !m.done);
+  $('#dot').classList.toggle('on', !!s.job);
+  $('#job').textContent = s.job || 'Nothing running right now';
+  $('#detail').textContent = live ? `Step ${m.step.toLocaleString()} of ${m.total.toLocaleString()}` : s.detail;
+
+  const stats = $('#stats'); stats.textContent = '';
+  if (live) {
+    stats.append(stat('Loss (lower is better)', m.loss.toFixed(4)));
+    const avg = m.firing.reduce((a, b) => a + b, 0) / m.firing.length;
+    stats.append(stat('Neurons firing', Math.round(avg * 100) + '%'));
+    stats.append(stat('Model size', (m.params / 1e6).toFixed(2) + 'M parameters'));
   }
-  // neurons
-  for (let l = 0; l < L; l++) {
-    g.fillStyle = css('--dim'); g.font = '12px system-ui'; g.textAlign = 'center';
-    g.fillText('Layer ' + (l + 1), xAt(l), 14);
-    f.layers[l].acts.forEach((v, i) => {
-      const a = Math.max(0, Math.min(1, v));
-      const x = xAt(l), y = yAt(i), r = 3 + a * 5;
-      if (a > 0.35) {
-        const glow = g.createRadialGradient(x, y, 0, x, y, r * 3);
-        glow.addColorStop(0, `rgba(217,70,239,${a * 0.7})`); glow.addColorStop(1, 'rgba(217,70,239,0)');
-        g.fillStyle = glow; g.beginPath(); g.arc(x, y, r * 3, 0, 7); g.fill();
-      }
-      g.fillStyle = a > 0.05 ? `rgb(${80 + 150 * a},${70 + 40 * a},${200 + 50 * a})` : '#2a2a66';
-      g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  if (s.gpu) {
+    stats.append(stat('GPU temperature', s.gpu.temp.toFixed(0) + '°C', s.gpu.temp >= 82));
+    stats.append(stat('GPU load', s.gpu.load.toFixed(0) + '%, ' + s.gpu.power.toFixed(0) + ' W'));
+  }
+  $('#barWrap').hidden = !live;
+  if (live) $('#bar').style.width = (m.step / m.total * 100) + '%';
+
+  $('#modelArea').hidden = !m;
+  $('#noModel').hidden = !!m;
+  if (!m) {
+    $('#noModel').textContent = s.job
+      ? 'No model is training in this job, so there are no neurons to show. They appear when a model starts training.'
+      : 'Nothing is running. Neurons appear when a model starts training.';
+    return;
+  }
+  $('#typeTitle').textContent = live ? 'What it\'s working on right now' : 'The last thing it worked on (not training now)';
+  $('#gridTitle').textContent = live ? 'Every neuron, right now' : 'Every neuron, when last seen';
+  if (m.time !== shown) {
+    shown = m.time;
+    $('#req').textContent = m.request.replace(/\n/g, ' ');
+    $('#result').textContent = '';
+    grids = m.grids; drawGrid();
+    typeOut(m.typed, () => {
+      const r = $('#result');
+      r.className = m.right ? 'right' : 'wrong';
+      r.textContent = m.right ? 'Correct' : 'Not right. Correct answer: ' + m.answer.replace(/\n/g, ' ').slice(0, 160);
     });
   }
 }
 
-function drawAttn() {
-  const [g, W, H] = sizeCanvas($('#attn'));
-  g.clearRect(0, 0, W, H);
-  if (!D) return;
-  const f = D.frames[cur], L = f.layers.length;
-  const cols = Math.min(60, f.layers[0].attn.length), rows = L, pad = 44;
-  const cw = (W - pad) / cols, ch = H / rows;
-  for (let r = 0; r < rows; r++) {
-    const a = f.layers[r].attn.slice(-cols), peak = Math.max(...a, 1e-6);
-    g.fillStyle = css('--dim'); g.font = '12px system-ui'; g.textAlign = 'left';
-    g.fillText('Layer ' + (r + 1), 0, r * ch + ch / 2 + 4);
-    a.forEach((v, c) => {
-      const t = v / peak;
-      g.fillStyle = `rgb(${20 + 200 * t},${18 + 60 * t},${70 + 170 * t})`;
-      g.fillRect(pad + c * cw, r * ch + 1, Math.max(1, cw - 1), ch - 2);
-    });
-  }
+async function tick() {
+  try { show(await (await fetch('/api/live')).json()); } catch { $('#job').textContent = 'Lost connection to the viewer'; }
 }
-
-function showFrame() {
-  if (!D) return;
-  const f = D.frames[cur];
-  $('#step').value = cur;
-  $('#pos').textContent = `${cur + 1} / ${D.frames.length}`;
-  const t = $('#tape'); t.textContent = '';
-  const i = document.createElement('i'); i.textContent = D.prompt; t.append(i);
-  D.frames.forEach((fr, n) => {
-    const b = document.createElement('b'); b.textContent = fr.char;
-    if (n === cur) b.className = 'now';
-    if (n <= cur) t.append(b);
-  });
-  $('#guess').innerHTML = '';
-  f.guess.forEach(([c, p]) => $('#guess').append(row(c, p, (p * 100).toFixed(p > 0.1 ? 0 : 1) + '%')));
-  $('#firing').innerHTML = '';
-  f.layers.forEach((l, n) => $('#firing').append(row(n + 1, l.firing, (l.firing * 100).toFixed(0) + '%')));
-  drawNet(); drawAttn();
-}
-
-function row(label, frac, text) {
-  const r = document.createElement('div'); r.className = 'row';
-  const t = document.createElement('div'); t.className = 't'; t.textContent = label;
-  const tr = document.createElement('div'); tr.className = 'track';
-  const fl = document.createElement('div'); fl.className = 'fill'; fl.style.width = Math.min(100, frac * 100) + '%';
-  tr.append(fl);
-  const n = document.createElement('div'); n.className = 'num'; n.textContent = text;
-  r.append(t, tr, n);
-  return r;
-}
-
-function showSize(s) {
-  $('#params').textContent = (s.params / 1e6).toFixed(2) + 'M parameters';
-  $('#sizeName').textContent = `${s.name}, ${s.file_mb.toFixed(1)} MB on disk`;
-  const stats = [['Layers', s.layers], ['Neurons per layer', s.neurons_per_layer.toLocaleString()],
-                 ['Total neurons', s.neurons_total.toLocaleString()], ['Attention heads', s.heads],
-                 ['Memory length', s.context.toLocaleString() + ' chars'], ['Characters known', s.vocab]];
-  $('#stats').innerHTML = '';
-  stats.forEach(([k, v]) => { const d = document.createElement('div'); const b = document.createElement('b'); b.textContent = v; d.append(k, b); $('#stats').append(d); });
-  $('#groups').innerHTML = '';
-  s.groups.forEach(([k, v]) => {
-    const d = document.createElement('div'); d.className = 'grp';
-    const a = document.createElement('span'); a.textContent = k;
-    const b = document.createElement('span'); b.className = 'num'; b.textContent = (v / 1e6).toFixed(2) + 'M';
-    d.append(a, b); $('#groups').append(d);
-    const tr = document.createElement('div'); tr.className = 'track'; tr.style.height = '6px';
-    const fl = document.createElement('div'); fl.className = 'fill'; fl.style.width = (v / s.params * 100) + '%';
-    tr.append(fl); $('#groups').append(tr);
-  });
-}
-
-function stop() { clearInterval(timer); timer = null; $('#play').textContent = 'Play'; }
-function play() {
-  if (timer) return stop();
-  if (cur >= D.frames.length - 1) cur = 0;
-  $('#play').textContent = 'Pause';
-  timer = setInterval(() => {
-    if (cur >= D.frames.length - 1) return stop();
-    cur++; showFrame();
-  }, 260);
-}
-
-async function runModel() {
-  stop(); $('#msg').textContent = 'Running the model...';
-  const r = await fetch('/api/run', {method:'POST', body:JSON.stringify({brain:$('#brain').value, text:$('#text').value, max_new:200})});
-  const j = await r.json();
-  if (j.error) { $('#msg').textContent = 'Error: ' + j.error; return; }
-  D = j; cur = 0; $('#msg').textContent = '';
-  $('#step').max = D.frames.length - 1;
-  showSize(D.size); showFrame(); play();
-}
-
-$('#f').onsubmit = e => { e.preventDefault(); runModel(); };
-$('#play').onclick = () => D && play();
-$('#step').oninput = e => { stop(); cur = +e.target.value; showFrame(); };
-$('#brain').onchange = () => { $('#text').value = brains[$('#brain').value].example; runModel(); };
-addEventListener('resize', () => { drawNet(); drawAttn(); });
-
-(async () => {
-  brains = await (await fetch('/api/brains')).json();
-  for (const [k, v] of Object.entries(brains)) {
-    const o = document.createElement('option'); o.value = k; o.textContent = v.name; $('#brain').append(o);
-  }
-  $('#text').value = brains[$('#brain').value].example;
-  runModel();
-})();
+setInterval(tick, 3000); tick();
+addEventListener('resize', drawGrid);
 </script>
 </body>
 </html>

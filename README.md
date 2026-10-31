@@ -118,11 +118,10 @@ pathfinding counts mining time as cost, so it digs through a hill when that's fa
 around.
 
 ### Neural Viewer
-`NEURONS.bat` opens a local web page (http://localhost:8842) that runs a real model on your text
-and shows it thinking, one character at a time: which neurons fire in each layer, the pathways
-between them (from the model's real weights), which earlier characters each layer is paying
-attention to, its top guesses for the next character, and how big the model is. It runs on the CPU,
-so it doesn't load the GPU.
+`NEURONS.bat` opens a local web page (http://localhost:8842) showing what's running on the PC right
+now. While a model trains, it shows the real example the model is practicing, what it typed, whether
+it was right, and every neuron in every layer, along with loss and GPU temperature. Lab tests have
+no model in them, so those show their progress only. The page itself uses no GPU.
 
 ### Keeping the PC usable
 - `gentle.py` + `gentle.json`: CPU priority, GPU memory cap, how hard the GPU works, and an
@@ -168,7 +167,7 @@ the next retrain.
 | `world_sim.py`, `demo_world.py` | voxel world + pathfinding miner |
 | `distill.py`, `brain_data.py` | the final merge of every model into one "Brain" |
 | `gentle.py`, `pipeline.py`, `learner.py` | keeping the PC usable, job queue, background learning |
-| `neural_view.py`, `neural.html` | Neural Viewer: watch the models think in a browser |
+| `neural_view.py`, `neural.html`, `live_feed.py` | Neural Viewer: live view of what's training on the PC |
 | `builder.pt`, `planner.pt`, `fight.pt` | the trained models (download from Releases) |
 
 ## Honest limits
