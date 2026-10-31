@@ -107,18 +107,25 @@ function drawGrid() {
   });
 }
 
-function typeOut(text, done) {
+function typeOut(text, frames, done) {
   clearInterval(typer);
   const box = $('#typing'); box.textContent = '';
   const body = document.createTextNode(''), cursor = document.createElement('span');
   cursor.className = 'cursor'; box.append(body, cursor);
-  let i = 0;
+  let i = 0, f = 0;
   const step = Math.max(1, Math.ceil(text.length / 90));   // long answers type faster so it keeps up
+  const pause = Math.max(25, Math.min(90, 2400 / Math.max(1, text.length / step)));   // short ones slow down to watch
   typer = setInterval(() => {
     body.appendData(text.slice(i, i + step)); i += step;
     box.scrollTop = box.scrollHeight;
+    while (f + 1 < frames.length && frames[f + 1].at <= i) f++;   // neurons from this point in the answer
+    if (grids !== frames[f].grids) {
+      grids = frames[f].grids; drawGrid();
+      const avg = frames[f].firing.reduce((a, b) => a + b, 0) / frames[f].firing.length;
+      const el = $('#firingNow'); if (el) el.textContent = Math.round(avg * 100) + '%';
+    }
     if (i >= text.length) { clearInterval(typer); cursor.remove(); done(); }
-  }, 25);
+  }, pause);
 }
 
 function stat(k, v, hot) {
@@ -130,14 +137,17 @@ function show(s) {
   $('#clock').textContent = s.clock;
   const m = s.model, live = !!(m && m.live && !m.done);
   $('#dot').classList.toggle('on', !!s.job);
-  $('#job').textContent = s.job || 'Nothing running right now';
-  $('#detail').textContent = live ? `Step ${m.step.toLocaleString()} of ${m.total.toLocaleString()}` : s.detail;
+  const name = live ? m.job.replace('merged training', 'Builder training') : s.job;
+  $('#job').textContent = name || 'Nothing running right now';
+  const also = live && s.job && s.job.startsWith('Redstone') ? `   Also running: ${s.job} (${s.detail})` : '';
+  $('#detail').textContent = live ? `Step ${m.step.toLocaleString()} of ${m.total.toLocaleString()}${also}` : s.detail;
 
   const stats = $('#stats'); stats.textContent = '';
   if (live) {
     stats.append(stat('Loss (lower is better)', m.loss.toFixed(4)));
-    const avg = m.firing.reduce((a, b) => a + b, 0) / m.firing.length;
-    stats.append(stat('Neurons firing', Math.round(avg * 100) + '%'));
+    const firing = stat('Neurons firing', '-');
+    firing.querySelector('b').id = 'firingNow';
+    stats.append(firing);
     stats.append(stat('Model size', (m.params / 1e6).toFixed(2) + 'M parameters'));
   }
   if (s.gpu) {
@@ -161,8 +171,7 @@ function show(s) {
     shown = m.time;
     $('#req').textContent = m.request.replace(/\n/g, ' ');
     $('#result').textContent = '';
-    grids = m.grids; drawGrid();
-    typeOut(m.typed, () => {
+    typeOut(m.typed, m.frames, () => {
       const r = $('#result');
       r.className = m.right ? 'right' : 'wrong';
       r.textContent = m.right ? 'Correct' : 'Not right. Correct answer: ' + m.answer.replace(/\n/g, ' ').slice(0, 160);

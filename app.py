@@ -55,6 +55,15 @@ house <wall_block> <floor_block> <roof_block> <w> <h> <d> <door side: north|sout
 roof <block> <w> <d>      (stepped pyramid roof)
 gable <block> <w> <d>     (pitched roof)
 frame <block> <w> <h> <d> (corner posts)
+tower <block> <radius 2-5> <h>   (round and hollow)
+cylinder <block> <radius 2-5> <h> (round and solid)
+pyramid <block> <w>
+bridge <block> <len> <x|z>
+castle_wall <block> <len> <h> <x|z>
+windows <block> <len> <h> <x|z>  (wall with glass windows)
+fence_ring <oak_fence|spruce_fence|dark_oak_fence|cobblestone_wall> <w> <d>
+farm <w> <d>
+lamp_post <block> <h>
 give <item> <count>
 describe <block>
 redstone <not|or|nor|nand|and|xor|half_adder|full_adder|rs_latch|d_latch>   (levers in, lamps out)

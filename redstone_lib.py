@@ -308,8 +308,8 @@ def decoder(bits, pitch=4):
     outs = []
     for i in range(rows):
         z = pitch * i
-        parts += [rep(12, z) if width > 13 else dust(12, z)] if width > 12 else []
-        parts += [dust(x, z) for x in range(0, width) if x != 12]
+        # a repeater every 12: wide decoders lost their low address bits before the row's end
+        parts += [rep(x, z) if x and x % 12 == 0 else dust(x, z) for x in range(width)]
         parts += [rep(width, z), block(width + 1, z), torch(width + 2, z, "west"), lamp(width + 3, z)]
         outs.append((width + 3, z))
         for k in range(bits):

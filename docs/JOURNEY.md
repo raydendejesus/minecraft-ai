@@ -177,6 +177,18 @@ it has to.
 - the old estimate for 1 KB (~200k parts) was too low: at this design's ~66 parts per bit it's
   about 500k per stick.
 
+## 17. The upgraded Builder
+Rayden watched it train in the Neural Viewer and worried it was spamming random block names. The
+check showed it was only 8% through its lessons, and the odd names (`nhjt_doohb`) were deliberate:
+made-up blocks teach it to copy any name instead of memorizing a list. Accuracy went 13% → 62% →
+87% → 98% as it trained. Final test: 97.6% of 500 new requests, and all 18 circuits written
+block for block. Its weak spot is full truth tables (44%), which take real multi-step logic.
+
+## 18. The 128-byte test
+The first run read 8 of 48 correctly, and the pattern gave it away: words came back in groups of
+32, so only the top 2 of the 7 address bits worked. Decoder rows were 42 blocks long with one
+repeater, so the low bits died on the way. Smaller versions were short enough to hide it.
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

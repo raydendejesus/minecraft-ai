@@ -41,6 +41,11 @@ def neurons(m, ids):
     return acts
 
 
+def grid(a):
+    """One layer's neurons as a string of digits, 0 (silent) to 9 (firing hard)."""
+    return "".join(map(str, (a.clamp(0, 2.5) / 2.5 * 9).round().int().tolist()))
+
+
 def publish(model, job, step, total, loss, sample, done=False):
     """sample() returns (request, correct answer) for the example to show."""
     global _last
@@ -51,12 +56,20 @@ def publish(model, job, step, total, loss, sample, done=False):
     try:
         req, answer = sample()
         ids = encode(fmt(req))[: model.ctx - 2]
-        typed = decode(model.generate(ids, max_new=min(300, model.ctx - len(ids) - 1)))
-        acts = neurons(model, ids)
-        grids = ["".join(map(str, (a.clamp(0, 2.5) / 2.5 * 9).round().int().tolist())) for a in acts]
+        limit = min(300, model.ctx - len(ids) - 1)
+        out = model.generate(ids, max_new=limit)
+        typed = decode(out)
+        # neurons at up to 24 points through the answer, so the page can animate them as it types
+        points = sorted({round(i * len(out) / 23) for i in range(24)}) if out else [0]
+        frames = []
+        for k in points:
+            acts = neurons(model, ids + out[:k])
+            frames.append({"at": k, "grids": [grid(a) for a in acts],
+                           "firing": [round(float((a > 0.1).float().mean()), 3) for a in acts]})
+        cut_short = len(out) >= limit
+        right = answer.startswith(typed) if cut_short else typed.strip() == answer.strip()
         state = {"job": job, "step": step, "total": total, "loss": round(float(loss), 4), "time": now,
-                 "request": req, "answer": answer, "typed": typed, "right": typed.strip() == answer.strip(),
-                 "firing": [round(float((a > 0.1).float().mean()), 3) for a in acts], "grids": grids,
+                 "request": req, "answer": answer, "typed": typed, "right": right, "frames": frames,
                  "params": sum(p.numel() for p in model.parameters()), "done": done}
         tmp = STATE + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
