@@ -137,19 +137,25 @@ def g_half_adder():
 
 def g_full_adder():
     """Two half adders: HA1(A, B) -> s1, c1;  HA2(s1, Cin) -> sum, c2;  cout = c1 or c2.
-    HA2 sits at offset (10, 2). c1 runs south of everything along z=11 to meet c2."""
+    HA2 sits at offset (12, 2). c1 runs south of everything along z=11 to meet c2.
+
+    Cin (10, 8) goes through a repeater and cout leaves through one, so a long carry wire
+    between adders always starts and arrives at full strength (found in the lab: the signal
+    was dying on the way out, and HA2's B input has 13+ blocks of its own to feed)."""
     ha1 = _half_adder_parts()
     ha1 = swap(ha1, (9, 3), rep(9, 3))             # s1 out, refreshed -> into HA2's A input
     ha1 = swap(ha1, (9, 7), None)                  # c1 no longer ends in a lamp
-    ha2 = shift(_half_adder_parts(), 10, 2)
-    ha2 = swap(ha2, (10, 3), dust(10, 3))          # HA2's A lever becomes the s1 wire
-    ha2 = swap(ha2, (19, 9), dust(19, 9))          # c2 continues toward the OR
+    ha2 = shift(_half_adder_parts(), 12, 2)
+    ha2 = swap(ha2, (12, 3), dust(12, 3))          # HA2's A lever becomes the s1 wire
+    ha2 = swap(ha2, (12, 8), dust(12, 8))          # HA2's B lever becomes the carry-in
+    ha2 = swap(ha2, (21, 9), dust(21, 9))          # c2 continues toward the OR
+    link = [dust(10, 3), dust(11, 3), lever(10, 8), rep(11, 8)]
     carry = [dust(8, 8), dust(8, 9), dust(8, 10), dust(8, 11),
              *[dust(x, 11) for x in range(9, 13)], rep(13, 11),
-             *[dust(x, 11) for x in range(14, 22)],
-             dust(20, 9), dust(20, 10), lamp(22, 11)]
-    parts = ha1 + ha2 + carry
-    return parts, [(0, 1), (0, 6), (10, 8)], [(19, 5), (22, 11)], \
+             *[dust(x, 11) for x in range(14, 23)],
+             dust(22, 9), dust(22, 10), rep(23, 11), lamp(24, 11)]
+    parts = ha1 + ha2 + link + carry
+    return parts, [(0, 1), (0, 6), (10, 8)], [(21, 5), (24, 11)], \
         lambda a, b, c: ((a + b + c) % 2, a + b + c >= 2)
 
 
@@ -171,6 +177,31 @@ def _half_adder_parts():
         # carry
         rep(7, 7), dust(8, 7), lamp(9, 7),
     ]
+
+
+def adder(bits, spacing=20):
+    """A ripple-carry adder: full adders one above the other, carry wires laid by the router.
+    Returns (parts, {input name: position}, sum lamps + carry lamp)."""
+    from router import Router
+    parts, inputs, outs = [], {}, []
+    for i in range(bits):
+        fa = shift(g_full_adder()[0], 0, i * spacing)
+        off = i * spacing
+        inputs[f"A{i}"], inputs[f"B{i}"] = (0, 1 + off), (0, 6 + off)
+        outs.append((21, 5 + off))
+        if i > 0:
+            fa = swap(fa, (10, 8 + off), None)        # carry comes from the wire, not a lever
+        if i < bits - 1:
+            fa = swap(fa, (24, 11 + off), None)       # carry leaves by wire, not a lamp
+        parts += fa
+    outs.append((24, 11 + (bits - 1) * spacing))
+    r = Router(parts)
+    for i in range(bits - 1):
+        off = i * spacing
+        wire = r.route((24, 0, 11 + off), (10, 0, 8 + off + spacing))
+        r.add(wire)
+        parts += wire["parts"]
+    return parts, inputs, outs
 
 
 GATES = {"not": g_not, "or": g_or, "nor": g_nor, "nand": g_nand, "and": g_and, "xor": g_xor,

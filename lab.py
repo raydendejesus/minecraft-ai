@@ -52,6 +52,11 @@ class Lab:
         self.cmd("tickingarea remove_all")
         self.cmd("tickingarea add -16 0 -16 79 319 79 lab true")
         self.cmd("gamerule doDaylightCycle false")
+        for _ in range(120):                     # wait until the far corner has actually loaded
+            if "Block placed" in " ".join(self.cmd(f"setblock 78 {FLOOR_Y} 78 stone", wait=0.5)):
+                break
+        else:
+            raise RuntimeError("lab area didn't load")
         self.reset_area()
 
     def _pump(self):
@@ -77,9 +82,9 @@ class Lab:
 
     def reset_area(self):
         """Wipe the test area and lay a fresh stone floor."""
-        self.cmd(f"fill -8 {FLOOR_Y} -8 63 {FLOOR_Y} 63 smooth_stone")
-        for y in range(FLOOR_Y + 1, FLOOR_Y + 20, 4):
-            self.cmd(f"fill -8 {y} -8 63 {y + 3} 63 air")
+        self.cmd(f"fill -8 {FLOOR_Y} -8 79 {FLOOR_Y} 79 smooth_stone")
+        for y in range(FLOOR_Y + 1, FLOOR_Y + 13, 3):
+            self.cmd(f"fill -8 {y} -8 79 {y + 2} 79 air")
 
     def block_at(self, x, y, z, expected, timeout=5):
         """True if the block at x y z is `expected` (block states optional). Waits for the

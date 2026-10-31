@@ -149,6 +149,20 @@ made only from what it gathered. The Planner decides, the voxel-world miner does
 - the lesson: when a model fails after doing fine in practice, look at how practice differs
   from the real task. Both failures were gaps in the training data, not weak judgment.
 
+## 15. The wire router and the 4-bit adder
+Chaining adders by hand kept running wires into each other, so we built a router (`router.py`): a
+search that finds a dust path obeying the rules the lab taught us, climbing over other wires when
+it has to.
+- first try: 12 of 16 sums right, and every failure involved a carry
+- reading the signal block by block showed two separate problems: the circuit needed more time
+  than the test gave it, and the wire left the adder at strength 7 and died before its first
+  repeater
+- fix: repeaters on the adder's carry output and input, so wires start and arrive at full
+  strength (the second half adder moved over 2 blocks to make room)
+- result: the 2-bit adder got 16 of 16 (every combination) and the **4-bit adder 16 of 16 test
+  sums** on a real server, including 15 + 1 rippling through every bit. 709 parts, carry wires
+  laid by the router.
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

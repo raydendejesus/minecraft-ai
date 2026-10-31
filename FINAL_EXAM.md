@@ -70,9 +70,10 @@ we just check that each one shows up and works at least once:
 ## 3. Redstone mini PC (on the lab server, `lab.py`) - to do
 Built in stages; each stage has to pass its lab test before the next:
 1. 2 RAM sticks of 16 bytes (scaling toward 1 KB with a tiler: 1 KB = 8,192 bits, ~200k parts)
-2. 4-bit ALU (add/subtract) - full adder already passes
+2. 4-bit ALU (add/subtract) - 4-bit adder passes (`test_adder.py`), subtract still to do
 3. 4-bit CPU: program counter, instruction decode, registers
 4. "Hard drive": storage that keeps its data (ROM / locked latches)
 5. "GPU": drives a lamp screen (7-segment digits, then a small pixel grid)
 6. Power supply: a clock and power distribution
-Needs the wire router first. The model plans modules and wiring; a tiler stamps out repeated cells.
+The wire router (`router.py`) is built. The model plans modules and wiring; a tiler stamps out
+repeated cells.
