@@ -120,12 +120,34 @@ build a castle, and build a redstone mini PC.
 - with focused practice it **passed all 4 tests after 3 rounds**: 100% / 96% / 82% against
   hordes, and **92% against the PvP bot**, far past the teacher's 60%.
 
-## 13. The black screens are power, not heat
-Three times during training the screens went black and the GPU froze, at 78-81°C each time,
-always under the temperature limit (the guard logs every 10 seconds). It's the same
-power-delivery issue Rayden's PC has had since August: sudden sustained GPU load drops the
-display. A temperature limit can't prevent it; reseating the GPU power cables (and/or a lower
-GPU power limit) is the real fix. GPU training is paused until that's sorted.
+## 13. Chasing the black screens
+The screens went black or the GPU dropped out four times during training, at 78-81°C, always
+under the temperature limit, so heat wasn't the trigger.
+- we first blamed the power-delivery problem the PC has had since August, but the cables were
+  fine, and a crash still happened with the GPU capped at 290 W
+- the logs then showed something more useful: **all four failures happened inside
+  `rl_planner.py`**. The fight RL and exam loop ran 23+ minutes at the same temperatures and
+  power, and normal training never crashed. Why that one job triggers it isn't proven yet.
+- the 290 W limit also didn't stick: the card was back at 300 W days later, even though the
+  startup task ran successfully, so something else on the PC is probably resetting it
+
+## 14. The castle exam
+The goal: start with nothing, end with full iron armor (24 iron) and a castle (483 cobblestone)
+made only from what it gathered. The Planner decides, the voxel-world miner does the work.
+- the teacher got stuck at first: iron was too rare, and the miner kept re-walking one finished
+  level. Fixes: realistic ore amounts and moving to a new level after each sweep.
+- giving the miner real 4.5-block reach let it mine the block under its own feet, leaving it
+  on air with no legal moves. Fixes: it won't dig straight down, and it falls properly now.
+- with those fixed, the teacher passed 10/10. The trained Planner then scored **0/10**:
+  - round 1: it said "build" too early, because goals this big looked nothing like practice
+  - round 2: it built after one helmet. Digging for iron had brought up 688 cobblestone by
+    accident, and in practice "plenty of stone" had always meant the game was nearly over
+  - round 3: the practice simulator now gives stone and coal along the way, like real tunnels.
+    **10/10.**
+- we did not add a rule blocking a bad "build". That would have hidden the problem instead of
+  teaching the model, and the exam would no longer be testing its judgment.
+- the lesson: when a model fails after doing fine in practice, look at how practice differs
+  from the real task. Both failures were gaps in the training data, not weak judgment.
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the

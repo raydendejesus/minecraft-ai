@@ -39,6 +39,11 @@ CRAFT = {
     "torch": (4, {"coal": 1, "stick": 1}, False),
     "bucket": (1, {"iron_ingot": 3}, True),
     "shield": (1, {"oak_planks": 6, "iron_ingot": 1}, True),
+    # full iron armor = 24 iron ingots
+    "iron_helmet": (1, {"iron_ingot": 5}, True),
+    "iron_chestplate": (1, {"iron_ingot": 8}, True),
+    "iron_leggings": (1, {"iron_ingot": 7}, True),
+    "iron_boots": (1, {"iron_ingot": 4}, True),
 }
 SMELT = {"iron_ingot": "raw_iron", "cooked_beef": "raw_beef", "glass": "sand"}
 # gathered item: (verb, tool tier needed: 0 hand, 1 wood, 2 stone, 3 iron)
@@ -52,7 +57,8 @@ FOODS = {"cooked_beef": 8, "bread": 5, "apple": 4}
 ITEM_ORDER = (list(GATHER) + list(SMELT) + list(CRAFT) + ["bread", "apple"])
 GOAL_ITEMS = ["oak_planks", "cobblestone", "glass", "oak_log", "stick", "torch", "furnace",
               "chest", "iron_ingot", "stone_pickaxe", "iron_pickaxe", "diamond_pickaxe",
-              "iron_sword", "stone_sword", "bucket", "shield", "coal", "cooked_beef"]
+              "iron_sword", "stone_sword", "bucket", "shield", "coal", "cooked_beef",
+              "iron_helmet", "iron_chestplate", "iron_leggings", "iron_boots"]
 
 
 def pick_tier(inv):
@@ -123,6 +129,10 @@ def apply(state, action):
         state["hunger"] = min(20, state["hunger"] + FOODS[p[1]])
     elif p[0] in ("chop", "mine", "dig"):
         inv[p[1]] = inv.get(p[1], 0) + int(p[2])
+        if state.get("big_project") and p[0] == "mine" and p[1] != "cobblestone":
+            # real tunnels: digging for ore also brings up a pile of stone and some coal
+            inv["cobblestone"] = inv.get("cobblestone", 0) + int(p[2]) * random.randint(10, 140)
+            inv["coal"] = inv.get("coal", 0) + random.randint(0, 6)
     elif p[0] == "hunt":
         inv["raw_beef"] = inv.get("raw_beef", 0) + int(p[2])
     elif p[0] == "craft":
@@ -152,6 +162,22 @@ def state_text(state):
     return f"goal {g['kind']} {goal} | have {have or 'nothing'} | hunger {state['hunger']}"
 
 
+ARMOR_SET = ["iron_helmet", "iron_chestplate", "iron_leggings", "iron_boots"]
+
+
+def castle_state():
+    """A big project: some or all of the armor set plus a castle's worth of stone."""
+    # mostly the whole set in order, sometimes part of it, so "one piece done" never means finished
+    armor = list(ARMOR_SET) if random.random() < 0.6 else random.sample(ARMOR_SET, random.randint(1, 4))
+    items = [(a, 1) for a in armor] + [("cobblestone", random.randint(100, 600))]
+    inv = {}
+    for i in random.sample(ITEM_ORDER, random.randint(0, 4)):
+        if i not in ARMOR_SET:
+            inv[i] = 1 if i in PICKS or i in ("crafting_table", "furnace") else random.randint(1, 20)
+    return {"goal": {"kind": "build", "items": items}, "inv": inv, "hunger": random.randint(0, 20),
+            "big_project": True}
+
+
 def random_state():
     kind = random.choice(["build", "get"])
     if kind == "build":
@@ -166,9 +192,10 @@ def random_state():
     return {"goal": {"kind": kind, "items": items}, "inv": inv, "hunger": random.randint(0, 20)}
 
 
-def episode(max_steps=40):
-    """Play one game with the teacher, returning every (state, action) along the way."""
-    state, pairs = random_state(), []
+def episode(max_steps=70):
+    """Play one game with the teacher, returning every (state, action) along the way.
+    A third of games are big castle-sized projects; test games (random_state) stay as they were."""
+    state, pairs = (castle_state() if random.random() < 0.33 else random_state()), []
     for _ in range(max_steps):
         action = teacher(state)
         pairs.append((state_text(state), action))

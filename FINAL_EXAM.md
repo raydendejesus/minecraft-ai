@@ -3,22 +3,26 @@
 Every part of the AI has to pass its exam before the final merge into the Brain.
 Each exam is a loop: test, learn from what failed, retrain, and test again until it passes.
 
-## 1. Fight (`exam_fight.py`, loop: `exam_loop.py`)
+## 1. Fight (`exam_fight.py`, loop: `exam_loop.py`) - PASSED 4/4
 Same 200 fights per test every time, so results can be compared.
 
-| Test | Teacher | Pass mark |
-|---|---|---|
-| Horde of 2 mobs at once | 100% | 90% |
-| Horde of 3 mobs at once | 97% | 85% |
-| Horde of 5 mobs at once | 63% | 75% |
-| 1v1 vs the hard-coded PvP bot | 60% | 75% |
+| Test | Teacher | Pass mark | Fight model |
+|---|---|---|---|
+| Horde of 2 mobs at once | 100% | 90% | 100% |
+| Horde of 3 mobs at once | 97% | 85% | 96% |
+| Horde of 5 mobs at once | 63% | 75% | 82% |
+| 1v1 vs the hard-coded PvP bot | 60% | 75% | 92% |
 
 The PvP bot (`fight_sim.py`, `_bot_turn`) is not trained. It plays by fixed expert rules:
 diamond sword, iron armor, shield up against bows, strafing, W-tap combos, lucky crits, a bow at
 range and 2 golden apples. Pass marks are set above the teacher, so the model has to out-play the
 rules it learned from.
 
-## 2. Castle + resources (in the voxel world, `world_sim.py`) - to do
+## 2. Castle + resources (in the voxel world, `castle_exam.py`) - PASSED 10/10
+The trained Survival Planner passed all 10 worlds on its own decisions (18-51 minutes of game
+time). Still simulated: hunting is a stand-in (the world has no animals yet), and the castle's
+block count is paid for and timed rather than placed block by block in the voxel world.
+
 Starting from nothing in a fresh world:
 - mine and smelt 24 iron and craft a full iron armor set (helmet 5, chestplate 8, leggings 7, boots 4)
 - mine enough cobblestone and gather enough wood for the castle

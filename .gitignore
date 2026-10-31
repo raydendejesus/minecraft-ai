@@ -23,5 +23,8 @@ learn_state.json
 *_run.txt
 *_console.txt
 train_log.txt
+castle_*_10.txt
+planner_compare.txt
+diamonds_recheck.txt
 gpu_temp_log.csv
 pipeline_queue.json

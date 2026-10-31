@@ -98,7 +98,7 @@ class World:
                 y += rng.uniform(-0.8, 0.8)
                 z += rng.uniform(-1.5, 1.5)
         # ores at their real heights: diamonds mostly near the bottom
-        for ore, lo, hi, count, vein in ((COAL, 0, 90, 140, 6), (IRON, -24, 56, 110, 4), (DIAMOND, -63, 16, 45, 3)):
+        for ore, lo, hi, count, vein in ((COAL, 0, 90, 260, 6), (IRON, -24, 56, 240, 5), (DIAMOND, -63, 16, 45, 3)):
             for _ in range(count):
                 if ore == DIAMOND:
                     y = int(min(hi, lo + abs(rng.gauss(0, 18))))
@@ -266,31 +266,81 @@ class Agent:
         self.mined += 1
         drop = {STONE: "cobblestone", DEEPSLATE: "cobbled_deepslate", COAL: "coal", IRON: "raw_iron",
                 DIAMOND: "diamond", GRASS: "dirt"}.get(v, NAMES[v])
+        if v == LEAVES:
+            return                                       # leaves drop nothing useful here
         self.inventory[drop] = self.inventory.get(drop, 0) + 1
 
+    REACH = 4.5   # blocks from the eyes, like a real player
+
+    def settle(self):
+        """Gravity: if nothing solid is under the feet, fall until something is."""
+        x, y, z = self.pos
+        while y > Y_MIN and self.w.get(x, y - 1, z) not in SOLID and self.w.get(x, y - 1, z) not in FLUID:
+            y -= 1
+        self.pos = (x, y, z)
+
     def reach_and_mine(self, target):
-        """Walk/dig to a spot where the target is next to our feet or head, then break it."""
+        """Walk/dig to a spot within reach of the target (4.5 blocks from the eyes), then break it."""
         tx, ty, tz = target
+        if tx == self.pos[0] and tz == self.pos[2] and ty < self.pos[1]:
+            return False                     # never dig straight down, it may be standing on it
 
-        def touching(p):
+        def in_reach(p):
             x, y, z = p
-            return any((x + dx, y + dy, z + dz) == target
-                       for dy in (0, 1) for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            eye = y + 1.62
+            return (x - tx) ** 2 + (eye - ty - 0.5) ** 2 + (z - tz) ** 2 <= self.REACH ** 2
 
-        path, secs = self.path_to(touching, lambda p: 1.2 * (abs(p[0] - tx) + abs(p[1] - ty) + abs(p[2] - tz)))
+        if in_reach(self.pos):
+            self.break_block(*target)
+            self.settle()
+            self.look()
+            return True
+        path, secs = self.path_to(in_reach, lambda p: 1.2 * (abs(p[0] - tx) + abs(p[1] - ty) + abs(p[2] - tz)))
         if path is None:
             return False
         self.follow(path)
         self.break_block(*target)
+        self.settle()
         self.look()
         return True
 
+    def chop(self, count, log=print):
+        """Get `count` oak logs: chop trees you can see, or walk the surface looking for some."""
+        rng = self.w.rng
+        tries = 0
+        while self.inventory.get("oak_log", 0) < count and tries < 40:
+            logs = self.known(LOG)
+            if logs:
+                logs.sort(key=lambda p: abs(p[0] - self.pos[0]) + abs(p[1] - self.pos[1]) + abs(p[2] - self.pos[2]))
+                if not self.reach_and_mine(logs[0]):
+                    self.seen.pop(logs[0], None)
+                continue
+            tries += 1
+            x, y, z = self.pos
+            if y < self.w.surface(x, z) - 1:
+                # underground: staircase back up to daylight first (trees grow on the surface)
+                path, _ = self.path_to(lambda p: p[1] > self.w.surface(p[0], p[2]),
+                                       lambda p: 1.5 * max(0, self.w.surface(p[0], p[2]) + 1 - p[1]),
+                                       limit=30000)
+                if path:
+                    self.follow(path)
+                continue
+            # on the surface: head for a random spot to look for trees
+            tx, tz = rng.randrange(2, self.w.size - 2), rng.randrange(2, self.w.size - 2)
+            path, _ = self.path_to(lambda p: abs(p[0] - tx) + abs(p[2] - tz) <= 2,
+                                   lambda p: 1.0 * (abs(p[0] - tx) + abs(p[2] - tz)), limit=15000)
+            if path:
+                self.follow(path)
+        return self.inventory.get("oak_log", 0) >= count
+
     def find(self, block, count, log=print):
         """Gather `count` of a block the way a smart player would."""
-        drop = {DIAMOND: "diamond", IRON: "raw_iron", COAL: "coal"}[block]
-        best_y = {DIAMOND: -58, IRON: 15, COAL: 40}[block]
-        direction, lane_shift = (1, 0), 1
-        while self.inventory.get(drop, 0) < count and self.time < 3600:
+        drop = {DIAMOND: "diamond", IRON: "raw_iron", COAL: "coal", STONE: "cobblestone"}[block]
+        best_y = {DIAMOND: -58, IRON: 15, COAL: 40, STONE: 40}[block]
+        levels = {DIAMOND: [-58, -50, -42], IRON: [15, 7, -1, 23, 31], COAL: [40, 32, 48, 24], STONE: [40]}[block]
+        direction, lane_shift, flips = (1, 0), 1, 0
+        deadline = self.time + 1800              # give up on this search after 30 game minutes
+        while self.inventory.get(drop, 0) < count and self.time < deadline:
             spots = self.known(block)
             if spots:
                 # nearest by real travel+mining time, not straight-line distance
@@ -327,6 +377,12 @@ class Agent:
             if not (1 <= gz < self.w.size - 1):
                 lane_shift = -lane_shift
                 gz = z + 3 * lane_shift
+                flips += 1
+                if flips >= 2 and len(levels) > 1:
+                    # swept this whole level: move to the next one, like a player branch mining
+                    levels = levels[1:] + levels[:1]
+                    best_y, flips = levels[0], 0
+                    continue
             path, _ = self.path_to(lambda p: p[2] == gz and abs(p[1] - best_y) <= 2,
                                    lambda p: 1.5 * abs(p[2] - gz), limit=20000)
             if path is None:
