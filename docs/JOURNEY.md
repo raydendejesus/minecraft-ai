@@ -188,6 +188,9 @@ block for block. Its weak spot is full truth tables (44%), which take real multi
 The first run read 8 of 48 correctly, and the pattern gave it away: words came back in groups of
 32, so only the top 2 of the 7 address bits worked. Decoder rows were 42 blocks long with one
 repeater, so the low bits died on the way. Smaller versions were short enough to hide it.
+With a repeater every 12 blocks, the retest read **48 of 48 correct**: 24 words across the whole
+stick, then again after rewriting one word to prove the others stayed untouched. It's over 80,000
+parts, 104 by 775 blocks, placed in about 22 minutes with `/fill`, on Bedrock 1.26.61.
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
