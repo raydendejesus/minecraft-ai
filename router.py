@@ -23,7 +23,8 @@ MAX_Y = 6
 
 def cell_kind(block):
     name = block.split()[0]
-    return "dust" if name == "redstone_wire" else "solid" if name in ("stone", "redstone_lamp") else "part"
+    # lamps count as parts: a powered lamp feeds any dust touching it
+    return "dust" if name == "redstone_wire" else "solid" if name == "stone" else "part"
 
 
 class Router:
@@ -106,7 +107,7 @@ class Router:
                 parts.append(R.block(x, z, y - 1))
             since += 1
             straight = 0 < i < len(path) - 1 and self._straight(path[i - 1], path[i], path[i + 1])
-            if since >= 12 and straight:
+            if since >= 9 and straight:              # early, straight stretches can be rare
                 parts.append(R.rep(x, z, self._dir(path[i - 1], path[i]), y))
                 since = 0
             else:

@@ -76,7 +76,8 @@ Built in stages; each stage has to pass its lab test before the next:
    much denser cell.
 2. 4-bit ALU (add/subtract) - DONE: 1,035 parts, 16 of 16 test sums, every 2-bit case passes
    (`test_alu.py`)
-3. 4-bit CPU: program counter, instruction decode, registers
+3. 4-bit CPU: program counter DONE (`test_counter.py`: 18 of 18, reset works); clock, instruction
+   decode and registers still to do
 4. "Hard drive": storage that keeps its data (ROM / locked latches)
 5. "GPU": drives a lamp screen (7-segment digits, then a small pixel grid)
 6. Power supply: a clock and power distribution

@@ -205,6 +205,17 @@ reached the adder at strength 3, so it got a repeater; SUB reached the first XOR
 one too. A separate bug: failed test runs left lab servers running, and they fought over the world.
 The 4-bit ALU then scored 16 of 16, including wrap-arounds like 3 - 5 = 14.
 
+## 21. The program counter
+Each bit is a flip-flop: two locking repeaters working like an airlock, so it flips once per clock
+pulse. On the way to a working 4-bit counter:
+- it woke up with random values, so it got a RESET line
+- the reset wire touched the stone in the clock's inverter, which jammed the clock on (the lamp
+  trap again: anything a repeater powers will feed the dust beside it). Repeaters fixed it.
+- all the lamps looked dead because a branching wire stops pointing at its lamp, which made a
+  working counter look broken
+- hand-laid wires shorted one bit's output into the next bit's clock, so the router took over
+Result: 18 of 18 counts, wrapping from 15 to 0, and RESET clears 15 back to 0.
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

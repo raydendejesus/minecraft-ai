@@ -360,6 +360,63 @@ def alu(bits, spacing=20):
     return parts, inputs, outs
 
 
+def toggle_cell():
+    """One counter bit: flips every time the clock at (8, 2) falls. Output lamp at (12, 0).
+
+    Two locking repeaters in a row, like an airlock. RA (4, 0) is open while the clock is high and
+    takes in NOT Q. RB (6, 0) is open while the clock is low and passes that on to Q. When the clock
+    falls, RA locks and RB opens, so Q flips exactly once per pulse.
+    Clock goes straight to RB's lock, and through an inverter to RA's lock. Q feeds back around the
+    north side through an inverter into RA."""
+    return [
+        rep(4, 0), dust(5, 0), rep(6, 0), dust(7, 0), dust(8, 0),                # RA, RB, Q
+        rep(9, 0), dust(10, 0), rep(11, 0), lamp(12, 0),                         # output
+        dust(8, -1), dust(8, -2), *[dust(x, -2) for x in range(0, 8)],           # Q back west
+        dust(0, -1), dust(0, 0), rep(1, 0), block(2, 0), torch(3, 0, "west"),    # NOT Q into RA
+        rep(4, 1, to="north"), rep(6, 1, to="north"),                            # lock repeaters
+        lever(8, 2), dust(7, 2), dust(6, 2),                                     # clock in, RB's lock
+        dust(6, 3), rep(6, 4, to="south"), block(6, 5), torch(6, 6, "north"),    # NOT clock
+        dust(5, 6), dust(4, 6), dust(4, 5), dust(4, 4), dust(4, 3), dust(4, 2),  # into RA's lock
+    ]
+
+
+def counter(bits, spacing=12):
+    """Ripple counter: each bit's output clocks the next bit. Returns parts, clock input, lamps."""
+    from router import Router
+    parts, outs = [], []
+    last = 8 + (bits - 1) * spacing
+    # RESET: a line down x=-2. For each bit it holds NOT Q off (through a slow repeater, so that
+    # releases last) and holds the clock high, so the bit lands on 0 when RESET is let go.
+    parts += [lever(-2, -4)]
+    for z in range(-3, last + 1):
+        parts.append(rep(-2, z, to="south") if z % spacing == 5 else dust(-2, z))
+    for i in range(bits):
+        off = i * spacing
+        cell = shift(toggle_cell(), 0, off)
+        if i:
+            cell = swap(cell, (8, 2 + off), None)      # clocked by the previous bit, not a lever
+        parts += cell
+        # NOT Q is held off through slow repeaters, so it lets go after the clock has dropped
+        parts += [dust(-1, 3 + off), rep(0, 3 + off, "east", 0, 3), rep(1, 3 + off, "east", 0, 3),
+                  dust(2, 3 + off), dust(2, 2 + off), rep(2, 1 + off, "north", 0, 3)]
+        # into the clock through repeaters, not dust: dust here would touch the inverter's stone
+        # at (6, 5), which is powered by the clock, and jam the clock on forever (found in the lab)
+        parts += [dust(x, 8 + off) for x in range(-1, 8)] + [dust(7, 7 + off)]
+        parts += [rep(7, z + off, to="north") for z in (6, 5, 4, 3)]
+        outs.append((12, off))
+    # clock entries: dust at (8, 2) fed by a repeater, with the router's wire arriving behind it
+    for i in range(1, bits):
+        off = i * spacing
+        parts += [dust(8, 2 + off), rep(8, 3 + off, to="north")]
+    r = Router(parts, bounds=(-3, 30, -4, 90))
+    for i in range(1, bits):
+        prev, off = (i - 1) * spacing, i * spacing
+        wire = r.route((10, 0, 1 + prev), (8, 0, 4 + off))
+        r.add(wire)
+        parts += wire["parts"]
+    return parts, (8, 2), outs
+
+
 GATES = {"not": g_not, "or": g_or, "nor": g_nor, "nand": g_nand, "and": g_and, "xor": g_xor,
          "half_adder": g_half_adder, "full_adder": g_full_adder}
 
