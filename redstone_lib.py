@@ -319,6 +319,47 @@ def decoder(bits, pitch=4):
     return parts, inputs, outs
 
 
+def alu(bits, spacing=20):
+    """Adder + subtractor. SUB off: A + B. SUB on: A - B, which is A + (NOT B) + 1.
+    Each B input goes through an XOR with SUB (flips the bit when SUB is on), and SUB also feeds
+    the first adder's carry-in (the + 1). XORs sit west of the adder, with the adder moved east.
+    Returns (parts, inputs, output lamps)."""
+    from router import Router
+    ADD_X = 15
+    add_parts, add_in, add_out = adder(bits, spacing)
+    parts = shift(add_parts, ADD_X, 0)
+    inputs = {f"A{i}": (add_in[f"A{i}"][0] + ADD_X, add_in[f"A{i}"][1]) for i in range(bits)}
+    outs = [(x + ADD_X, z) for x, z in add_out]
+    parts = swap(parts, (ADD_X + 10, 8), None)            # carry-in comes from SUB now
+    xors = []
+    bus = [lever(-3, -6)]
+    inputs["SUB"] = (-3, -6)
+    last = 3 + (bits - 1) * spacing
+    for z in range(-5, last + 1):
+        bus.append(rep(-3, z, to="south") if z % 12 == 6 else dust(-3, z))
+    for i in range(bits):
+        off = i * spacing
+        x = shift(g_xor()[0], 0, off + 2)
+        x = swap(x, (0, 3 + off), dust(0, 3 + off))       # input A of the XOR: SUB
+        inputs[f"B{i}"] = (0, 7 + off)                    # input B of the XOR: the real B lever
+        x = swap(x, (9, 5 + off), dust(9, 5 + off))       # XOR output heads for the adder
+        bus += [dust(-2, 3 + off), rep(-1, 3 + off)]      # full strength into every XOR
+        # the adder's B lever becomes a repeater: its input feeds 13+ blocks, so the wire
+        # has to arrive at full strength (it was reaching the adder at 3 and dying inside)
+        parts = swap(parts, (ADD_X, 6 + off), rep(ADD_X, 6 + off))
+        xors += x
+    parts += xors + bus
+    r = Router(parts, bounds=(-6, 60, -8, 90))
+    for i in range(bits):
+        off = i * spacing
+        wire = r.route((10, 0, 5 + off), (ADD_X - 1, 0, 6 + off))
+        r.add(wire)
+        parts += wire["parts"]
+    wire = r.route((-3, 0, -5), (ADD_X + 10, 0, 8))        # SUB -> the first carry-in (the + 1)
+    parts += wire["parts"]
+    return parts, inputs, outs
+
+
 GATES = {"not": g_not, "or": g_or, "nor": g_nor, "nand": g_nand, "and": g_and, "xor": g_xor,
          "half_adder": g_half_adder, "full_adder": g_full_adder}
 

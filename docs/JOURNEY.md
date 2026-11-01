@@ -192,6 +192,19 @@ With a repeater every 12 blocks, the retest read **48 of 48 correct**: 24 words 
 stick, then again after rewriting one word to prove the others stayed untouched. It's over 80,000
 parts, 104 by 775 blocks, placed in about 22 minutes with `/fill`, on Bedrock 1.26.61.
 
+## 19. Updating the servers
+Rayden couldn't join the lab, which took three fixes: Store Minecraft is blocked from reaching its
+own PC until it gets a loopback exemption, the server was older than the game, and the new version
+requires `transport=nethernet`. The main server was backed up first, then updated, keeping its world
+and add-on. All 11 circuits still passed on the new version.
+
+## 20. The ALU
+A - B is A + (NOT B) + 1, so each B input goes through an XOR driven by one SUB lever, and SUB also
+feeds the first carry-in. Getting there was the same lesson three times: signals arriving weak. B
+reached the adder at strength 3, so it got a repeater; SUB reached the first XOR at 3, so that got
+one too. A separate bug: failed test runs left lab servers running, and they fought over the world.
+The 4-bit ALU then scored 16 of 16, including wrap-arounds like 3 - 5 = 14.
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

@@ -30,7 +30,11 @@ class Lab:
         self.proc = None
 
     def __enter__(self):
-        self.start()
+        try:
+            self.start()
+        except BaseException:
+            self.stop()         # a failed start must not leave a server holding the world
+            raise
         return self
 
     def __exit__(self, *exc):
@@ -58,10 +62,13 @@ class Lab:
             self.cmd(f"tickingarea add -16 0 {z0} 127 319 {z0 + 175} lab{n} true")
         self.cmd("gamerule doDaylightCycle false")
         for _ in range(120):                     # wait until the far corner has actually loaded
-            if "Block placed" in " ".join(self.cmd(f"setblock 120 {FLOOR_Y} {self.far_z} stone", wait=0.5)):
+            # "couldn't be placed" also proves it's loaded (the block is already there);
+            # an unloaded spot says "outside of the world"
+            reply = " ".join(self.cmd(f"setblock 120 {FLOOR_Y} {self.far_z} stone", wait=0.5))
+            if "placed" in reply:
                 break
         else:
-            raise RuntimeError("lab area didn't load")
+            raise RuntimeError(f"lab area didn't load, last reply: {reply[-120:]!r}")
         self.reset_area()
 
     def _pump(self):

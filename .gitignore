@@ -27,6 +27,8 @@ castle_*_10.txt
 adder4_run.txt
 ram16_*.txt
 ram128_*.txt
+alu*_run.txt
+alu2_verbose.txt
 planner_compare.txt
 diamonds_recheck.txt
 gpu_temp_log.csv

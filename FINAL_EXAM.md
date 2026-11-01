@@ -74,7 +74,8 @@ Built in stages; each stage has to pass its lab test before the next:
    passes on every word. A second stick is the same design again; the two aren't wired together yet.
    1 KB would be about 500,000 parts per stick at this design's ~66 parts per bit, so it needs a
    much denser cell.
-2. 4-bit ALU (add/subtract) - 4-bit adder passes (`test_adder.py`), subtract still to do
+2. 4-bit ALU (add/subtract) - DONE: 1,035 parts, 16 of 16 test sums, every 2-bit case passes
+   (`test_alu.py`)
 3. 4-bit CPU: program counter, instruction decode, registers
 4. "Hard drive": storage that keeps its data (ROM / locked latches)
 5. "GPU": drives a lamp screen (7-segment digits, then a small pixel grid)
