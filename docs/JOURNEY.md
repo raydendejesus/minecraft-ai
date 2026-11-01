@@ -216,6 +216,15 @@ pulse. On the way to a working 4-bit counter:
 - hand-laid wires shorted one bit's output into the next bit's clock, so the router took over
 Result: 18 of 18 counts, wrapping from 15 to 0, and RESET clears 15 back to 0.
 
+## 22. "You no build, our AI builds"
+Rayden caught the project drifting: Claude had been designing the ALU, counter, decoder and RAM
+itself, and nothing the AI wrote had ever been placed in the game. The goal is an AI that can
+build, so those hand-made designs are lessons for the model, not results for it.
+- first real test (`test_ai_builds.py`): the Builder wrote 11 circuits, only its blocks were placed,
+  and **11 of 11 worked in the game**, up to a full adder and a byte of RAM
+- limit: it learned those designs by example, so this shows it can reproduce circuits, not invent
+  them. Designing its own is the next goal.
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

@@ -67,7 +67,12 @@ we just check that each one shows up and works at least once:
   - Bedrock redstone differs from Java (no quasi-connectivity, some blocks can't be pushed),
     so every trap is built and fired on the lab server before it counts.
 
-## 3. Redstone mini PC (on the lab server, `lab.py`) - to do
+## 3. Redstone mini PC (on the lab server, `lab.py`) - in progress
+**The AI has to do the building.** Everything counts only when model output is what gets placed and
+tested (`test_ai_builds.py`). So far the AI has built 11 circuits, 11 working, up to a full adder and a
+byte of RAM. The bigger machines listed below were designed by Claude as lessons, and the AI can't
+build them yet.
+
 Built in stages; each stage has to pass its lab test before the next:
 1. RAM sticks - DONE for one stick: **128 bytes**, 80,000+ parts, about 104 x 775 blocks. All 48
    reads correct on 24 words spread across the stick (`test_ram.py 7 8`), and the 16-byte stick
