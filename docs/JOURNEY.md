@@ -225,6 +225,17 @@ build, so those hand-made designs are lessons for the model, not results for it.
 - limit: it learned those designs by example, so this shows it can reproduce circuits, not invent
   them. Designing its own is the next goal.
 
+## 23. The AI builds the machines
+Rayden's call: have the AI build everything Claude built, and expand its memory if needed.
+- answers were too long, so straight lines became runs, and the context grew from 1,280 to 6,144
+  characters, keeping everything the model already knew
+- for RAM, growing the context was never going to work (276,820 characters for 128 bytes). Rayden
+  asked for more memory or a smaller stick, and it turned out neither was needed: a repeat
+  shorthand ("this part, 128 times, every 6 blocks") shrank 128 bytes to 3,489 characters
+- it ran unattended overnight: the AI wrote all 19 machines exactly, then built each one on the lab
+  server from its own answers, with none of Claude's parts placed. Counter, adder, decoder, ALU and
+  RAM sticks of 16, 64 and 128 bytes all passed
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

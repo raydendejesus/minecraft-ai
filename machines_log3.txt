@@ -77,3 +77,203 @@ step 6900/25000  loss 0.0001  647s
 step 7000/25000  loss 0.0013  657s
   >> accuracy on new requests: 95%   corrections learned: 0/0
 step 7100/25000  loss 0.0002  688s
+step 7200/25000  loss 0.0000  697s
+step 7300/25000  loss 0.0013  705s
+step 7400/25000  loss 0.0022  714s
+step 7500/25000  loss 0.0002  724s
+step 7600/25000  loss 0.0017  733s
+step 7700/25000  loss 0.0007  743s
+step 7800/25000  loss 0.0000  753s
+step 7900/25000  loss 0.0013  762s
+step 8000/25000  loss 0.0001  772s
+  >> accuracy on new requests: 98%   corrections learned: 0/0
+step 8100/25000  loss 0.0007  795s
+step 8200/25000  loss 0.0001  804s
+step 8300/25000  loss 0.0037  813s
+step 8400/25000  loss 0.0001  823s
+step 8500/25000  loss 0.0045  833s
+step 8600/25000  loss 0.0022  839s
+step 8700/25000  loss 0.0001  846s
+step 8800/25000  loss 0.0016  852s
+step 8900/25000  loss 0.0022  858s
+step 9000/25000  loss 0.0000  868s
+  >> accuracy on new requests: 92%   corrections learned: 0/0
+step 9100/25000  loss 0.0014  892s
+step 9200/25000  loss 0.0023  899s
+step 9300/25000  loss 0.0000  906s
+step 9400/25000  loss 0.0011  914s
+step 9500/25000  loss 0.0006  921s
+step 9600/25000  loss 0.0000  930s
+step 9700/25000  loss 0.0008  937s
+step 9800/25000  loss 0.0010  945s
+step 9900/25000  loss 0.0001  954s
+step 10000/25000  loss 0.0001  961s
+  >> accuracy on new requests: 93%   corrections learned: 0/0
+step 10100/25000  loss 0.0003  982s
+step 10200/25000  loss 0.0000  989s
+step 10300/25000  loss 0.0021  997s
+step 10400/25000  loss 0.0005  1004s
+step 10500/25000  loss 0.0000  1013s
+step 10600/25000  loss 0.0011  1020s
+step 10700/25000  loss 0.0008  1028s
+step 10800/25000  loss 0.0000  1035s
+step 10900/25000  loss 0.0004  1042s
+step 11000/25000  loss 0.0007  1049s
+  >> accuracy on new requests: 97%   corrections learned: 0/0
+step 11100/25000  loss 0.0000  1070s
+step 11200/25000  loss 0.0004  1076s
+step 11300/25000  loss 0.0011  1084s
+step 11400/25000  loss 0.0000  1090s
+step 11500/25000  loss 0.0033  1098s
+step 11600/25000  loss 0.0001  1105s
+step 11700/25000  loss 0.0000  1112s
+step 11800/25000  loss 0.0004  1118s
+step 11900/25000  loss 0.0021  1128s
+step 12000/25000  loss 0.0000  1136s
+  >> accuracy on new requests: 98%   corrections learned: 0/0
+step 12100/25000  loss 0.0010  1156s
+step 12200/25000  loss 0.0001  1164s
+step 12300/25000  loss 0.0000  1171s
+step 12400/25000  loss 0.0015  1177s
+step 12500/25000  loss 0.0001  1184s
+step 12600/25000  loss 0.0000  1191s
+step 12700/25000  loss 0.0006  1198s
+step 12800/25000  loss 0.0002  1204s
+step 12900/25000  loss 0.0000  1213s
+step 13000/25000  loss 0.0004  1221s
+  >> accuracy on new requests: 98%   corrections learned: 0/0
+step 13100/25000  loss 0.0014  1249s
+step 13200/25000  loss 0.0000  1258s
+step 13300/25000  loss 0.0012  1266s
+step 13400/25000  loss 0.0019  1274s
+step 13500/25000  loss 0.0000  1283s
+step 13600/25000  loss 0.0016  1290s
+step 13700/25000  loss 0.0021  1298s
+step 13800/25000  loss 0.0000  1306s
+step 13900/25000  loss 0.0028  1314s
+step 14000/25000  loss 0.0011  1321s
+  >> accuracy on new requests: 100%   corrections learned: 0/0
+step 14100/25000  loss 0.0000  1348s
+step 14200/25000  loss 0.0004  1355s
+step 14300/25000  loss 0.0000  1364s
+step 14400/25000  loss 0.0000  1371s
+step 14500/25000  loss 0.0003  1379s
+step 14600/25000  loss 0.0007  1385s
+step 14700/25000  loss 0.0000  1393s
+step 14800/25000  loss 0.0005  1400s
+step 14900/25000  loss 0.0009  1409s
+step 15000/25000  loss 0.0000  1416s
+  >> accuracy on new requests: 93%   corrections learned: 0/0
+step 15100/25000  loss 0.0010  1441s
+step 15200/25000  loss 0.0013  1447s
+step 15300/25000  loss 0.0000  1455s
+step 15400/25000  loss 0.0013  1462s
+step 15500/25000  loss 0.0022  1471s
+step 15600/25000  loss 0.0000  1480s
+step 15700/25000  loss 0.0023  1488s
+step 15800/25000  loss 0.0021  1496s
+step 15900/25000  loss 0.0000  1503s
+step 16000/25000  loss 0.0006  1512s
+  >> accuracy on new requests: 93%   corrections learned: 0/0
+step 16100/25000  loss 0.0014  1535s
+step 16200/25000  loss 0.0000  1541s
+step 16300/25000  loss 0.0001  1548s
+step 16400/25000  loss 0.0018  1557s
+step 16500/25000  loss 0.0000  1565s
+step 16600/25000  loss 0.0021  1572s
+step 16700/25000  loss 0.0010  1579s
+step 16800/25000  loss 0.0000  1587s
+step 16900/25000  loss 0.0001  1593s
+step 17000/25000  loss 0.0021  1599s
+  >> accuracy on new requests: 98%   corrections learned: 0/0
+step 17100/25000  loss 0.0000  1619s
+step 17200/25000  loss 0.0001  1626s
+step 17300/25000  loss 0.0003  1633s
+step 17400/25000  loss 0.0000  1640s
+step 17500/25000  loss 0.0011  1648s
+step 17600/25000  loss 0.0000  1654s
+step 17700/25000  loss 0.0000  1663s
+step 17800/25000  loss 0.0005  1669s
+step 17900/25000  loss 0.0007  1676s
+step 18000/25000  loss 0.0000  1683s
+  >> accuracy on new requests: 98%   corrections learned: 0/0
+step 18100/25000  loss 0.0002  1705s
+step 18200/25000  loss 0.0003  1711s
+step 18300/25000  loss 0.0000  1717s
+step 18400/25000  loss 0.0009  1724s
+step 18500/25000  loss 0.0003  1731s
+step 18600/25000  loss 0.0000  1738s
+step 18700/25000  loss 0.0014  1746s
+step 18800/25000  loss 0.0009  1754s
+step 18900/25000  loss 0.0000  1760s
+step 19000/25000  loss 0.0020  1768s
+  >> accuracy on new requests: 100%   corrections learned: 0/0
+step 19100/25000  loss 0.0001  1795s
+step 19200/25000  loss 0.0000  1802s
+step 19300/25000  loss 0.0010  1809s
+step 19400/25000  loss 0.0009  1816s
+step 19500/25000  loss 0.0000  1824s
+step 19600/25000  loss 0.0009  1831s
+step 19700/25000  loss 0.0002  1838s
+step 19800/25000  loss 0.0000  1845s
+step 19900/25000  loss 0.0025  1853s
+step 20000/25000  loss 0.0013  1862s
+  >> accuracy on new requests: 100%   corrections learned: 0/0
+step 20100/25000  loss 0.0000  1888s
+step 20200/25000  loss 0.0000  1897s
+step 20300/25000  loss 0.0005  1906s
+step 20400/25000  loss 0.0000  1915s
+step 20500/25000  loss 0.0003  1925s
+step 20600/25000  loss 0.0000  1936s
+step 20700/25000  loss 0.0000  1945s
+step 20800/25000  loss 0.0007  1955s
+step 20900/25000  loss 0.0009  1964s
+step 21000/25000  loss 0.0000  1972s
+  >> accuracy on new requests: 97%   corrections learned: 0/0
+step 21100/25000  loss 0.0015  1997s
+step 21200/25000  loss 0.0008  2006s
+step 21300/25000  loss 0.0000  2016s
+step 21400/25000  loss 0.0003  2026s
+step 21500/25000  loss 0.0002  2035s
+step 21600/25000  loss 0.0000  2044s
+step 21700/25000  loss 0.0009  2054s
+step 21800/25000  loss 0.0006  2065s
+step 21900/25000  loss 0.0000  2075s
+step 22000/25000  loss 0.0015  2084s
+  >> accuracy on new requests: 100%   corrections learned: 0/0
+step 22100/25000  loss 0.0003  2109s
+step 22200/25000  loss 0.0000  2118s
+step 22300/25000  loss 0.0011  2127s
+step 22400/25000  loss 0.0002  2136s
+step 22500/25000  loss 0.0000  2146s
+step 22600/25000  loss 0.0013  2156s
+  (GPU at 83C, hit the 83C limit: pausing until it cools to 77C)
+  (GPU back to 51C, resuming)
+step 22700/25000  loss 0.0002  2170s
+step 22800/25000  loss 0.0000  2178s
+step 22900/25000  loss 0.0009  2188s
+step 23000/25000  loss 0.0010  2198s
+  >> accuracy on new requests: 100%   corrections learned: 0/0
+step 23100/25000  loss 0.0000  2226s
+step 23200/25000  loss 0.0000  2234s
+step 23300/25000  loss 0.0001  2245s
+step 23400/25000  loss 0.0000  2255s
+step 23500/25000  loss 0.0001  2264s
+step 23600/25000  loss 0.0001  2274s
+step 23700/25000  loss 0.0000  2284s
+step 23800/25000  loss 0.0009  2292s
+step 23900/25000  loss 0.0003  2302s
+step 24000/25000  loss 0.0000  2312s
+  >> accuracy on new requests: 95%   corrections learned: 0/0
+step 24100/25000  loss 0.0001  2335s
+step 24200/25000  loss 0.0006  2346s
+step 24300/25000  loss 0.0000  2356s
+step 24400/25000  loss 0.0011  2365s
+step 24500/25000  loss 0.0000  2376s
+step 24600/25000  loss 0.0000  2385s
+step 24700/25000  loss 0.0026  2394s
+step 24800/25000  loss 0.0007  2404s
+step 24900/25000  loss 0.0000  2415s
+step 25000/25000  loss 0.0002  2425s
+  >> accuracy on new requests: 98%   corrections learned: 0/0
+done, saved builder_machines.pt

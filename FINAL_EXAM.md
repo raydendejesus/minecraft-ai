@@ -69,9 +69,24 @@ we just check that each one shows up and works at least once:
 
 ## 3. Redstone mini PC (on the lab server, `lab.py`) - in progress
 **The AI has to do the building.** Everything counts only when model output is what gets placed and
-tested (`test_ai_builds.py`). So far the AI has built 11 circuits, 11 working, up to a full adder and a
-byte of RAM. The bigger machines listed below were designed by Claude as lessons, and the AI can't
-build them yet.
+tested (`test_ai_builds.py`, `test_ai_machines.py`).
+
+Built by the AI from its own answers, on the lab server:
+
+| Machine | Result |
+|---|---|
+| 11 small circuits, up to a full adder and a RAM byte | 11 of 11 work |
+| 4-bit counter | 18 of 18, reset works |
+| 4-bit adder | 16 of 16 |
+| 4-bit address decoder | 16 of 16 |
+| 4-bit ALU | 16 of 16 |
+| 16-byte RAM | 32 of 32 reads |
+| 64-byte RAM | 48 of 48 reads |
+| 128-byte RAM, 80,318 parts | 48 of 48 reads |
+
+Limit: it learned these from Claude's designs, so it reproduces machines. It hasn't designed its own.
+Still to do by the AI: the CPU's control, a clock, storage, a mini GPU and a screen. None exist yet.
+The list below is the plan; "done" there means Claude's lesson design exists.
 
 Built in stages; each stage has to pass its lab test before the next:
 1. RAM sticks - DONE for one stick: **128 bytes**, 80,000+ parts, about 104 x 775 blocks. All 48

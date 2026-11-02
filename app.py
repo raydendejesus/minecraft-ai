@@ -68,6 +68,11 @@ give <item> <count>
 describe <block>
 redstone <not|or|nor|nand|and|xor|half_adder|full_adder|rs_latch|d_latch>   (levers in, lamps out)
 redstone ram <bits 1-8>    (a byte of ram = redstone ram 8)
+redstone adder <2-4>       (adds binary numbers)
+redstone alu <2-4>         (adds and subtracts)
+redstone counter <2-4>     (counts up, with reset)
+redstone decoder <2-4>     (address decoder)
+redstone ramstick 4 8      (16 bytes of RAM, huge; 5 8 = 32 bytes, 6 8 = 64, 7 8 = 128)
 logic <expr> | a=1 b=0 c=1 (work out logic, e.g. logic (a and not b) or c | a=1 b=0 c=0)
 truth <expr>               (full truth table over a, b, c)
 
@@ -265,7 +270,7 @@ class MinecraftAI:
         """Builder output -> commands. Redstone comes back in the compact parts language."""
         if r["request"].startswith("redstone"):
             try:
-                return R.to_commands(R.from_compact(r["commands"]))
+                return R.to_commands(R.from_loops(r["commands"]))
             except (ValueError, IndexError, KeyError) as e:
                 return [f"# the builder wrote a broken circuit ({e}), fix it or retrain"]
         return [l.strip() for l in r["commands"].splitlines() if l.strip()]

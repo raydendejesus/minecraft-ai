@@ -461,6 +461,8 @@ def validate_request(req):
     if p[0] == "redstone":
         if len(p) == 3 and p[1] in MACHINES and p[2] in ("2", "3", "4"):
             return f"redstone {p[1]} {p[2]}"
+        if len(p) == 4 and p[1] == "ramstick" and f"{p[2]} {p[3]}" in ("2 2", "3 4", "4 4", "4 8", "5 8", "6 8", "7 8"):
+            return " ".join(p)
         if len(p) == 3 and p[1] == "ram" and p[2].isdigit():
             return f"redstone ram {max(1, min(8, int(p[2])))}"
         if len(p) == 2 and p[1] in REDSTONE_DESIGNS:

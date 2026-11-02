@@ -90,4 +90,5 @@ class Builder:
 
     def build(self, request):
         self._maybe_reload()
-        return decode(self.model.generate(encode(fmt(request)))).strip()
+        ids = encode(fmt(request))
+        return decode(self.model.generate(ids, max_new=self.model.ctx - len(ids) - 1)).strip()

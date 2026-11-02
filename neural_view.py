@@ -17,7 +17,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = 8842
 STALE = 30      # seconds before a model snapshot counts as finished
 
-JOBS = (("test_ram.py", "Redstone test: RAM on the lab server", "ram128_run.txt"),
+JOBS = (("test_ai_machines.py", "The AI's build is being tested on the lab server", "overnight_report.txt"),
+        ("check_machines.py", "The AI is writing out every machine from memory", "overnight_report.txt"),
+        ("overnight", "Overnight chain", "overnight_report.txt"),
+        ("test_ram.py", "Redstone test: RAM on the lab server", "ram128_run.txt"),
         ("test_adder.py", "Redstone test: adder on the lab server", None),
         ("test_decoder.py", "Redstone test: decoder on the lab server", None),
         ("test_lab.py", "Redstone test on the lab server", None),
@@ -94,6 +97,10 @@ def snapshot():
     for script, label, log in JOBS:
         if script in procs:
             job, detail = label, last_line(log) if log else ""
+            if script == "test_ai_machines.py":          # say which machine, and the last result
+                what = procs.split("test_ai_machines.py", 1)[1].splitlines()[0].strip()
+                job = f"{label}: {what}"
+                detail = f"No model is running in this step. Last result: {detail}"
             break
     out = {"job": job, "detail": detail, "clock": time.strftime("%I:%M:%S %p"), "gpu": None, "model": None}
     try:
