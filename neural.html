@@ -39,6 +39,7 @@
   @media (prefers-reduced-motion: reduce) { .cursor { animation:none; } }
   #result { font-size:14px; min-height:21px; margin-top:8px; }
   .right { color:var(--good); } .wrong { color:var(--bad); }
+  #net { width:100%; height:420px; display:block; }
   #grid { width:100%; height:308px; display:block; background:#080922; border:1px solid var(--line); border-radius:9px; }
   .note { color:var(--dim); font-size:13px; margin:8px 0 0; }
   .empty { color:var(--dim); padding:30px 8px; text-align:center; font-size:15px; }
@@ -60,6 +61,13 @@
     <div id="detail"></div>
     <div class="bar" id="barWrap" hidden><div class="fill" id="bar"></div></div>
     <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="card" id="netCard" style="margin-bottom:14px" hidden>
+    <h2>Neurons and connections</h2>
+    <canvas id="net" role="img" aria-label="Layers of neurons with the connections between them"></canvas>
+    <p class="note">Each column is a layer, showing its 20 busiest neurons out of 1,024. Lines are real connections from the
+      model's weights, drawn when the neuron sending them is firing: pink pushes the next neuron up, blue holds it down.</p>
   </section>
 
   <section class="grid2" id="modelArea" hidden>
@@ -107,6 +115,52 @@ function drawGrid() {
   });
 }
 
+let net = null, lastFiring = '-';
+
+function drawNet(currentGrids) {
+  const c = $('#net'), r = c.getBoundingClientRect(), s = window.devicePixelRatio || 1;
+  if (!r.width || !net || !currentGrids) return;
+  c.width = r.width * s; c.height = r.height * s;
+  const g = c.getContext('2d'); g.setTransform(s, 0, 0, s, 0, 0);
+  const W = r.width, H = r.height, L = net.picks.length, N = net.picks[0].length;
+  const left = 34, right = 34, top = 26, bottom = 12;
+  const xAt = l => left + (W - left - right) * (l / Math.max(1, L - 1));
+  const yAt = i => top + (H - top - bottom) * (i / (N - 1));
+  const act = net.picks.map((p, l) => p.map(i => (currentGrids[l].charCodeAt(i) - 48) / 9));
+  g.lineCap = 'round';
+  for (let l = 0; l < L - 1; l++) {
+    const M = net.links[l], edges = [];
+    let peak = 1e-6;
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const v = Math.abs(M[i][j] * act[l][i]);
+      if (v > 0) { edges.push([v, i, j, M[i][j]]); peak = Math.max(peak, v); }
+    }
+    edges.sort((a, b) => b[0] - a[0]);
+    for (const [v0, i, j, w] of edges.slice(0, 26)) {
+      const v = v0 / peak;
+      g.strokeStyle = w > 0 ? `rgba(217,70,239,${0.12 + v * 0.7})` : `rgba(96,165,250,${0.1 + v * 0.6})`;
+      g.lineWidth = 0.5 + v * 2;
+      const x1 = xAt(l), x2 = xAt(l + 1), mid = (x1 + x2) / 2;
+      g.beginPath(); g.moveTo(x1, yAt(i)); g.bezierCurveTo(mid, yAt(i), mid, yAt(j), x2, yAt(j)); g.stroke();
+    }
+  }
+  for (let l = 0; l < L; l++) {
+    g.fillStyle = css('--dim'); g.font = '12px system-ui'; g.textAlign = 'center';
+    g.fillText('Layer ' + (l + 1), xAt(l), 14);
+    act[l].forEach((a, i) => {
+      const x = xAt(l), y = yAt(i), rad = 3 + a * 5;
+      if (a > 0.35) {
+        const glow = g.createRadialGradient(x, y, 0, x, y, rad * 3);
+        glow.addColorStop(0, `rgba(217,70,239,${a * 0.7})`); glow.addColorStop(1, 'rgba(217,70,239,0)');
+        g.fillStyle = glow; g.beginPath(); g.arc(x, y, rad * 3, 0, 7); g.fill();
+      }
+      g.fillStyle = a > 0.05 ? `rgb(${80 + 150 * a},${70 + 40 * a},${200 + 50 * a})` : '#2a2a66';
+      g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill();
+    });
+  }
+  g.textAlign = 'left';
+}
+
 function typeOut(text, frames, done) {
   clearInterval(typer);
   const box = $('#typing'); box.textContent = '';
@@ -120,9 +174,10 @@ function typeOut(text, frames, done) {
     box.scrollTop = box.scrollHeight;
     while (f + 1 < frames.length && frames[f + 1].at <= i) f++;   // neurons from this point in the answer
     if (grids !== frames[f].grids) {
-      grids = frames[f].grids; drawGrid();
+      grids = frames[f].grids; drawGrid(); drawNet(grids);
       const avg = frames[f].firing.reduce((a, b) => a + b, 0) / frames[f].firing.length;
-      const el = $('#firingNow'); if (el) el.textContent = Math.round(avg * 100) + '%';
+      lastFiring = Math.round(avg * 100) + '%';
+      const el = $('#firingNow'); if (el) el.textContent = lastFiring;
     }
     if (i >= text.length) { clearInterval(typer); cursor.remove(); done(); }
   }, pause);
@@ -145,7 +200,7 @@ function show(s) {
   const stats = $('#stats'); stats.textContent = '';
   if (live) {
     stats.append(stat('Loss (lower is better)', m.loss.toFixed(4)));
-    const firing = stat('Neurons firing', '-');
+    const firing = stat('Neurons firing', lastFiring);
     firing.querySelector('b').id = 'firingNow';
     stats.append(firing);
     stats.append(stat('Model size', (m.params / 1e6).toFixed(2) + 'M parameters'));
@@ -158,6 +213,7 @@ function show(s) {
   if (live) $('#bar').style.width = (m.step / m.total * 100) + '%';
 
   $('#modelArea').hidden = !m;
+  $('#netCard').hidden = !(m && m.net);
   $('#noModel').hidden = !!m;
   if (!m) {
     $('#noModel').textContent = s.job
@@ -169,6 +225,7 @@ function show(s) {
   $('#gridTitle').textContent = live ? 'Every neuron, right now' : 'Every neuron, when last seen';
   if (m.time !== shown) {
     shown = m.time;
+    net = m.net;
     $('#req').textContent = m.request.replace(/\n/g, ' ');
     $('#result').textContent = '';
     typeOut(m.typed, m.frames, () => {
@@ -183,7 +240,7 @@ async function tick() {
   try { show(await (await fetch('/api/live')).json()); } catch { $('#job').textContent = 'Lost connection to the viewer'; }
 }
 setInterval(tick, 3000); tick();
-addEventListener('resize', drawGrid);
+addEventListener('resize', () => { drawGrid(); drawNet(grids); });
 </script>
 </body>
 </html>

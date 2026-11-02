@@ -1,0 +1,34 @@
+machines: 6.33M parameters on cuda, 25000 steps, 0 corrections from you
+step 100/25000  loss 0.0008  9s
+step 200/25000  loss 0.0009  15s
+step 300/25000  loss 0.0001  23s
+step 400/25000  loss 0.0034  30s
+step 500/25000  loss 0.0026  40s
+step 600/25000  loss 0.0009  49s
+step 700/25000  loss 0.0015  57s
+step 800/25000  loss 0.0001  66s
+step 900/25000  loss 0.0028  73s
+step 1000/25000  loss 0.0010  80s
+  >> accuracy on new requests: 95%   corrections learned: 0/0
+step 1100/25000  loss 0.0011  105s
+step 1200/25000  loss 0.0002  114s
+step 1300/25000  loss 0.0011  125s
+step 1400/25000  loss 0.0005  136s
+step 1500/25000  loss 0.0011  145s
+step 1600/25000  loss 0.0024  155s
+step 1700/25000  loss 0.0016  164s
+step 1800/25000  loss 0.0002  174s
+step 1900/25000  loss 0.0035  184s
+step 2000/25000  loss 0.0008  195s
+  >> accuracy on new requests: 93%   corrections learned: 0/0
+step 2100/25000  loss 0.0001  222s
+step 2200/25000  loss 0.0001  230s
+step 2300/25000  loss 0.0009  240s
+step 2400/25000  loss 0.0030  249s
+step 2500/25000  loss 0.0004  257s
+step 2600/25000  loss 0.0039  266s
+step 2700/25000  loss 0.0013  275s
+step 2800/25000  loss 0.0009  282s
+step 2900/25000  loss 0.0015  291s
+step 3000/25000  loss 0.0001  300s
+  >> accuracy on new requests: 88%   corrections learned: 0/0

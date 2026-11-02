@@ -252,6 +252,8 @@ def reference(req):
         return "# " + DESCRIPTIONS.get(a[0], "i dont know that block yet.")
     if op == "redstone":
         import redstone_lib as R
+        if a[0] in MACHINES:                    # big machines are written in straight runs
+            return R.to_runs(getattr(R, a[0])(int(a[1]))[0])
         if a[0] == "ram":
             return R.to_compact(R.design_parts("ram", int(a[1])))
         return R.to_compact(R.design_parts(a[0]))
@@ -314,6 +316,17 @@ def random_expr(depth=0):
 
 REDSTONE_DESIGNS = ["not", "or", "nor", "nand", "and", "xor", "half_adder", "full_adder",
                     "rs_latch", "d_latch"]
+MACHINES = ("adder", "alu", "counter", "decoder")
+MACHINE_REQUESTS = [f"redstone {m} {n}" for m in MACHINES for n in (2, 3, 4)]
+_machine_answers = {}
+
+
+def machine_sample():
+    """One big machine with its full answer (they're cached: each is thousands of characters)."""
+    req = random.choice(MACHINE_REQUESTS)
+    if req not in _machine_answers:
+        _machine_answers[req] = reference(req)
+    return req, _machine_answers[req]
 
 
 def _fake_block():
@@ -441,6 +454,8 @@ def validate_request(req):
     if not p:
         raise ValueError("empty request")
     if p[0] == "redstone":
+        if len(p) == 3 and p[1] in MACHINES and p[2] in ("2", "3", "4"):
+            return f"redstone {p[1]} {p[2]}"
         if len(p) == 3 and p[1] == "ram" and p[2].isdigit():
             return f"redstone ram {max(1, min(8, int(p[2])))}"
         if len(p) == 2 and p[1] in REDSTONE_DESIGNS:

@@ -23,13 +23,14 @@ from model import DEFAULT_CONFIG, HERE, TinyGPT
 TASKS = {"builder": ("data", "builder.pt"), "planner": ("planner_data", "planner.pt"),
          "merged": ("data", "builder_merged.pt"),   # builder + redstone + logic, one model
          "fight": ("fight_data", "fight.pt"),
-         "brain": ("brain_data", "brain.pt")}      # everything merged, learned from the specialists
+         "brain": ("brain_data", "brain.pt"),      # everything merged, learned from the specialists
+         "machines": ("data", "builder_machines.pt")}   # Builder with a longer memory, big machines
 
 
-def make_batch(task, n, corrections, ctx, device):
+def make_batch(task, n, corrections, ctx, device, sampler=None):
     seqs, starts = [], []
     for _ in range(n):
-        req, out = task.sample(corrections)
+        req, out = sampler() if sampler else task.sample(corrections)
         prompt = encode(fmt(req))
         full = encode(fmt(req, out))[:ctx + 1]
         seqs.append(full)
@@ -65,6 +66,8 @@ def main():
     ap.add_argument("--task", choices=TASKS, default="builder")
     ap.add_argument("--dim", type=int, default=None, help="model width (default 256)")
     ap.add_argument("--layers", type=int, default=None, help="model depth (default 6)")
+    ap.add_argument("--init", default=None, help="start from this model, keeping what it knows")
+    ap.add_argument("--ctx", type=int, default=None, help="with --init: new context length")
     args = ap.parse_args()
     module, ckpt_name = TASKS[args.task]
     task = importlib.import_module(module)
@@ -72,7 +75,19 @@ def main():
 
     gentle.setup()
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    if args.resume:
+    if args.init:
+        # keep every weight; only the position memory grows to the new context length
+        ck = torch.load(os.path.join(HERE, args.init), map_location=device)
+        config = dict(ck["config"])
+        old_ctx, config["ctx"] = config["ctx"], args.ctx or config["ctx"]
+        model = TinyGPT(**config).to(device)
+        state = dict(ck["model"])
+        grown = model.pos.weight.detach().clone()
+        grown[:old_ctx] = state["pos.weight"]
+        state["pos.weight"] = grown
+        model.load_state_dict(state)
+        steps, lr_max = args.steps or 8000, 4e-4
+    elif args.resume:
         ck = torch.load(CKPT_PATH, map_location=device)
         config = ck["config"]
         model = TinyGPT(**config).to(device)
@@ -100,7 +115,10 @@ def main():
         lr =lr_max * min(1, step / warmup) * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * step / steps)))
         for g in opt.param_groups:
             g["lr"] = lr
-        x, y = make_batch(task, args.batch, corrections, config["ctx"], device)
+        if args.task == "machines" and step % 3 == 0:      # a whole machine: only a few fit at once
+            x, y = make_batch(task, 3, corrections, config["ctx"], device, sampler=task.machine_sample)
+        else:
+            x, y = make_batch(task, args.batch, corrections, config["ctx"], device)
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device == "cuda"):
             logits = model(x)
         loss = F.cross_entropy(logits.float().view(-1, logits.size(-1)), y.view(-1), ignore_index=-100)

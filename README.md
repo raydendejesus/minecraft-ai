@@ -120,7 +120,8 @@ around.
 ### Neural Viewer
 `NEURONS.bat` opens a local web page (http://localhost:8842) showing what's running on the PC right
 now. While a model trains, it shows the real example the model is practicing, what it typed, whether
-it was right, and every neuron in every layer, along with loss and GPU temperature. Lab tests have
+it was right, its busiest neurons with the connections between them, and every neuron in every
+layer, along with loss and GPU temperature. Lab tests have
 no model in them, so those show their progress only. The page itself uses no GPU.
 
 ### Keeping the PC usable

@@ -37,3 +37,5 @@ pipeline_queue.json
 decoder4_run.txt
 bds_update/
 live_state.json*
+overnight_*.txt
+ai_machines/

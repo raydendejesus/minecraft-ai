@@ -539,6 +539,9 @@ def to_compact(parts):
         name = b.split()[0]
         if name == "unpowered_repeater":
             code = f"r {x} {y} {z} {OPPOSITE[_state(b, 'minecraft:cardinal_direction')][0]}"
+            delay = b.split('"repeater_delay"=')[1].rstrip("]")
+            if delay != "0":
+                code += f" {delay}"                  # slow repeater, 1-3
         elif name == "unpowered_comparator":
             sub = "s" if "output_subtract_bit\"=true" in b else "k"
             code = f"c {x} {y} {z} {OPPOSITE[_state(b, 'minecraft:cardinal_direction')][0]} {sub}"
@@ -574,7 +577,7 @@ def from_compact(text):
         elif k == "m":
             parts.append(lamp(x, z, y))
         elif k == "r":
-            parts.append(rep(x, z, DIR[p[4]], y))
+            parts.append(rep(x, z, DIR[p[4]], y, int(p[5]) if len(p) > 5 else 0))
         elif k == "t":
             parts.append(torch(x, z, DIR[p[4]], y))
         elif k == "c":
@@ -582,6 +585,53 @@ def from_compact(text):
         else:
             raise ValueError(f"unknown part '{k}'")
     return parts
+
+
+def to_runs(parts):
+    """Compact language with straight runs: 'd 1 0 3 x9' is 9 dust going east from (1, 0, 3)."""
+    groups, order = {}, []
+    for line in to_compact(parts).splitlines():
+        p = line.split()
+        key = (p[0], int(p[2]), tuple(p[4:]))
+        if key not in groups:
+            groups[key] = set()
+            order.append(key)
+        groups[key].add((int(p[1]), int(p[3])))
+    out = []
+    for key in order:
+        kind, y, extra = key
+        cells = groups[key]
+        while cells:
+            x, z = min(cells, key=lambda c: (c[1], c[0]))
+            run_x = 1
+            while (x + run_x, z) in cells:
+                run_x += 1
+            run_z = 1
+            while (x, z + run_z) in cells:
+                run_z += 1
+            length, axis = (run_x, "x") if run_x >= run_z else (run_z, "z")
+            for i in range(length):
+                cells.discard((x + i, z) if axis == "x" else (x, z + i))
+            tail = " ".join(extra)
+            head = f"{kind} {x} {y} {z}" + (f" {tail}" if tail else "")
+            out.append(head + (f" {axis}{length}" if length > 1 else ""))
+    return "\n".join(out)
+
+
+def from_runs(text):
+    """The reverse of to_runs: turn the AI's lines into parts."""
+    lines = []
+    for line in text.strip().splitlines():
+        p = line.split()
+        n, axis = 1, None
+        if p[-1][0] in "xz" and p[-1][1:].isdigit():
+            axis, n = p[-1][0], int(p[-1][1:])
+            p = p[:-1]
+        x, y, z = map(int, p[1:4])
+        for i in range(n):
+            cx, cz = (x + i, z) if axis == "x" else (x, z + i) if axis == "z" else (x, z)
+            lines.append(" ".join([p[0], str(cx), str(y), str(cz), *p[4:]]))
+    return from_compact("\n".join(lines))
 
 
 def design_parts(name, n=None):

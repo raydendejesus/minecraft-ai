@@ -39,6 +39,52 @@ def last_line(name):
         return ""
 
 
+MODEL_FILES = (("machines", "builder_machines.pt"), ("merged", "builder_merged.pt"), ("planner", "planner.pt"),
+               ("Survival Planner", "planner.pt"), ("fight", "fight.pt"), ("Fight", "fight.pt"), ("builder", "builder.pt"))
+SHOWN = 20          # neurons drawn per layer
+_weights = {"file": None, "mtime": None, "state": None}
+_net = {"time": None, "net": None}
+
+
+def connections(m):
+    """Which neurons to draw, and how strongly each drives the next layer's, from the real weights.
+    Read from the saved model on the CPU, so training is never touched."""
+    import torch
+    if _net["time"] == m["time"]:
+        return _net["net"]
+    name = next((f for key, f in MODEL_FILES if key in m["job"]), None)
+    path = os.path.join(HERE, name) if name else None
+    if not path or not os.path.exists(path):
+        return None
+    mtime = os.path.getmtime(path)
+    if _weights["file"] != path or _weights["mtime"] != mtime:
+        try:
+            state = torch.load(path, map_location="cpu")["model"]
+        except Exception:
+            state = None                                 # caught it mid-save, use the last good one
+        if state is not None:
+            keys = [k for k in state if k.endswith(("mlp.0.weight", "mlp.2.weight"))]
+            _weights.update(file=path, mtime=mtime, state={k: state[k] for k in keys})
+    if _weights["state"] is None:
+        return None
+    layers = len(m["frames"][0]["grids"])
+    picks = []
+    for L in range(layers):
+        peak = [0] * len(m["frames"][0]["grids"][L])
+        for fr in m["frames"]:
+            for i, ch in enumerate(fr["grids"][L]):
+                peak[i] = max(peak[i], ord(ch) - 48)
+        picks.append(sorted(sorted(range(len(peak)), key=lambda i: -peak[i])[:SHOWN]))
+    links = []
+    w = _weights["state"]
+    for L in range(layers - 1):
+        a, b = torch.tensor(picks[L]), torch.tensor(picks[L + 1])
+        M = w[f"blocks.{L + 1}.mlp.0.weight"][b] @ w[f"blocks.{L}.mlp.2.weight"][:, a]
+        links.append([[round(float(v), 3) for v in row] for row in M.T])
+    _net.update(time=m["time"], net={"picks": picks, "links": links})
+    return _net["net"]
+
+
 def snapshot():
     procs = subprocess.run(
         ["powershell", "-NoProfile", "-Command",
@@ -61,7 +107,8 @@ def snapshot():
             m = json.load(f)
         m["live"] = time.time() - m["time"] < STALE
         out["model"] = m
-    except (OSError, ValueError):
+        m["net"] = connections(m)
+    except (OSError, ValueError, KeyError, IndexError):
         pass
     return out
 
