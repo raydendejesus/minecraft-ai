@@ -39,3 +39,5 @@ bds_update/
 live_state.json*
 overnight_*.txt
 ai_machines/
+overnight2_*.txt
+design_table.bin

@@ -24,7 +24,8 @@ TASKS = {"builder": ("data", "builder.pt"), "planner": ("planner_data", "planner
          "merged": ("data", "builder_merged.pt"),   # builder + redstone + logic, one model
          "fight": ("fight_data", "fight.pt"),
          "brain": ("brain_data", "brain.pt"),      # everything merged, learned from the specialists
-         "machines": ("data", "builder_machines.pt")}   # Builder with a longer memory, big machines
+         "machines": ("data", "builder_machines.pt"),   # Builder with a longer memory, big machines
+         "designer": ("designer_data", "designer.pt")}  # bigger model that also designs circuits
 
 
 def make_batch(task, n, corrections, ctx, device, sampler=None):
@@ -52,7 +53,9 @@ def evaluate(task, model, corrections, n=60):
     b = Builder()
     b.model, b.mtime = model, float("inf")
     b._maybe_reload = lambda: None
-    hits = sum(b.build(req) == task.reference(req) for req in (task.random_request() for _ in range(n)))
+    limit = getattr(task, "EVAL_LIMIT", None)
+    right = getattr(task, "correct", lambda req, got: got == task.reference(req))
+    hits = sum(right(req, b.build(req, limit)) for req in (task.random_request() for _ in range(n)))
     fixed = sum(b.build(c["req"]) == c["out"] for c in corrections)
     model.train()
     return hits / n, fixed
@@ -99,6 +102,8 @@ def main():
             config["dim"] = args.dim
         if args.layers:
             config["layers"] = args.layers
+        if args.ctx:
+            config["ctx"] = args.ctx
         model = TinyGPT(**config).to(device)
         steps, lr_max = args.steps or 6000, (1e-3 if config["dim"] <= 256 else 6e-4)
 
@@ -115,7 +120,7 @@ def main():
         lr =lr_max * min(1, step / warmup) * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * step / steps)))
         for g in opt.param_groups:
             g["lr"] = lr
-        if args.task == "machines" and step % 3 == 0:      # a whole machine: only a few fit at once
+        if args.task in ("machines", "designer") and step % 3 == 0:   # a whole machine: only a few fit at once
             x, y = make_batch(task, 3, corrections, config["ctx"], device, sampler=task.machine_sample)
         else:
             x, y = make_batch(task, args.batch, corrections, config["ctx"], device)

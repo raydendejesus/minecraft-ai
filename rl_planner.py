@@ -67,9 +67,13 @@ def choose(model, texts, greedy=False, temp=1.0):
     """Score every possible move for each state; sample one (or take the best)."""
     prompts = [t for t in texts for _ in CHOICES]
     answers = CHOICES * len(texts)
-    # in chunks, so it fits under the GPU memory cap in gentle.json
-    scores = torch.cat([seq_logprobs(model, prompts[i:i + 240], answers[i:i + 240])
-                        for i in range(0, len(prompts), 240)]).view(len(texts), len(CHOICES))
+    # small chunks with a breath between them: this job's fast bursts of load are the only thing
+    # that has crashed this GPU, so the load is kept low and steady
+    parts = []
+    for i in range(0, len(prompts), 90):
+        parts.append(seq_logprobs(model, prompts[i:i + 90], answers[i:i + 90]))
+        time.sleep(0.03)
+    scores = torch.cat(parts).view(len(texts), len(CHOICES))
     if greedy:
         idx = scores.argmax(1)
     else:

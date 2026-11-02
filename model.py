@@ -88,7 +88,8 @@ class Builder:
             m.eval()
             self.model, self.mtime = m, mtime
 
-    def build(self, request):
+    def build(self, request, limit=None):
         self._maybe_reload()
         ids = encode(fmt(request))
-        return decode(self.model.generate(ids, max_new=self.model.ctx - len(ids) - 1)).strip()
+        room = self.model.ctx - len(ids) - 1
+        return decode(self.model.generate(ids, max_new=min(room, limit or room))).strip()
