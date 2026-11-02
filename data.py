@@ -254,6 +254,8 @@ def reference(req):
         import redstone_lib as R
         if a[0] in MACHINES:                    # big machines are written in straight runs
             return R.to_runs(getattr(R, a[0])(int(a[1]))[0])
+        if a[0] == "ramstick":                  # RAM sticks are written with repeats
+            return R.to_loops(R.ram(int(a[1]), int(a[2]))[0])
         if a[0] == "ram":
             return R.to_compact(R.design_parts("ram", int(a[1])))
         return R.to_compact(R.design_parts(a[0]))
@@ -318,6 +320,9 @@ REDSTONE_DESIGNS = ["not", "or", "nor", "nand", "and", "xor", "half_adder", "ful
                     "rs_latch", "d_latch"]
 MACHINES = ("adder", "alu", "counter", "decoder")
 MACHINE_REQUESTS = [f"redstone {m} {n}" for m in MACHINES for n in (2, 3, 4)]
+if os.environ.get("MCAI_RAM") == "1":           # only the RAM stage practices these
+    MACHINE_REQUESTS += [f"redstone ramstick {a} {w}" for a, w in
+                         ((2, 2), (3, 4), (4, 4), (4, 8), (5, 8), (6, 8), (7, 8))]
 _machine_answers = {}
 
 

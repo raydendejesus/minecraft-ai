@@ -4,6 +4,7 @@
     python test_ai_machines.py alu 4
     python test_ai_machines.py counter 4
     python test_ai_machines.py decoder 4
+    python test_ai_machines.py ram 7 8     128 bytes (address bits, word bits)
 
 The model's answer is saved in ai_machines/. The test scripts only supply which levers and lamps
 to use. If the answer can't be turned into blocks, that counts as a failure.
@@ -33,26 +34,29 @@ def ask_ai(request):
 
 
 def main():
-    kind, bits = sys.argv[1], int(sys.argv[2])
-    request = f"redstone {kind} {bits}"
+    kind, args = sys.argv[1], [int(a) for a in sys.argv[2:]]
+    label = "_".join(map(str, args))
+    request = f"redstone {'ramstick' if kind == 'ram' else kind} " + " ".join(map(str, args))
     text = ask_ai(request)
     os.makedirs(os.path.join(HERE, "ai_machines"), exist_ok=True)
-    with open(os.path.join(HERE, "ai_machines", f"{kind}_{bits}.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(HERE, "ai_machines", f"{kind}_{label}.txt"), "w", encoding="utf-8") as f:
         f.write(text)
     try:
-        ai_parts = R.from_runs(text)
+        ai_parts = R.from_loops(text)
     except (ValueError, IndexError, KeyError) as e:
         print(f"AI BUILD {request}: unbuildable answer ({e})", flush=True)
         sys.exit(2)
-    designed = getattr(R, kind)(bits)
+    designed = getattr(R, kind)(*args)
     print(f"AI wrote {len(ai_parts)} parts ({len(designed[0])} in the lesson)", flush=True)
 
     def ai_version(*_a, **_k):                 # hand back the AI's blocks, keep only the ports
         return (ai_parts, *designed[1:])
 
     setattr(R, kind, ai_version)
-    sys.argv = [sys.argv[0], str(bits)]
-    if kind == "alu":
+    sys.argv = [sys.argv[0], *map(str, args)]
+    if kind == "ram":
+        import test_ram as t
+    elif kind == "alu":
         import test_alu as t
     elif kind == "adder":
         import test_adder as t

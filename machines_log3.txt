@@ -32,3 +32,48 @@ step 2800/25000  loss 0.0009  282s
 step 2900/25000  loss 0.0015  291s
 step 3000/25000  loss 0.0001  300s
   >> accuracy on new requests: 88%   corrections learned: 0/0
+step 3100/25000  loss 0.0016  327s
+step 3200/25000  loss 0.0006  334s
+step 3300/25000  loss 0.0000  342s
+step 3400/25000  loss 0.0007  348s
+step 3500/25000  loss 0.0004  354s
+step 3600/25000  loss 0.0007  362s
+step 3700/25000  loss 0.0019  369s
+step 3800/25000  loss 0.0014  376s
+step 3900/25000  loss 0.0013  382s
+step 4000/25000  loss 0.0009  389s
+  >> accuracy on new requests: 97%   corrections learned: 0/0
+step 4100/25000  loss 0.0016  411s
+step 4200/25000  loss 0.0034  417s
+step 4300/25000  loss 0.0009  425s
+step 4400/25000  loss 0.0020  431s
+step 4500/25000  loss 0.0003  437s
+step 4600/25000  loss 0.0017  444s
+step 4700/25000  loss 0.0004  453s
+step 4800/25000  loss 0.0056  461s
+step 4900/25000  loss 0.0005  468s
+step 5000/25000  loss 0.0024  475s
+  >> accuracy on new requests: 93%   corrections learned: 0/0
+step 5100/25000  loss 0.0004  496s
+step 5200/25000  loss 0.0007  502s
+step 5300/25000  loss 0.0005  508s
+step 5400/25000  loss 0.0001  516s
+step 5500/25000  loss 0.0009  523s
+step 5600/25000  loss 0.0030  531s
+step 5700/25000  loss 0.0010  537s
+step 5800/25000  loss 0.0002  545s
+step 5900/25000  loss 0.0005  553s
+step 6000/25000  loss 0.0000  560s
+  >> accuracy on new requests: 98%   corrections learned: 0/0
+step 6100/25000  loss 0.0004  583s
+step 6200/25000  loss 0.0007  593s
+step 6300/25000  loss 0.0000  601s
+step 6400/25000  loss 0.0002  609s
+step 6500/25000  loss 0.0056  616s
+step 6600/25000  loss 0.0000  623s
+step 6700/25000  loss 0.0007  631s
+step 6800/25000  loss 0.0020  639s
+step 6900/25000  loss 0.0001  647s
+step 7000/25000  loss 0.0013  657s
+  >> accuracy on new requests: 95%   corrections learned: 0/0
+step 7100/25000  loss 0.0002  688s

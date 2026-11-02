@@ -12,6 +12,8 @@ east (+x). Inputs are levers; outputs are lamps. `test_lab.py` checks each desig
 truth table on the lab server.
 """
 
+import re
+
 OPPOSITE = {"east": "west", "west": "east", "north": "south", "south": "north"}
 
 
@@ -632,6 +634,68 @@ def from_runs(text):
             cx, cz = (x + i, z) if axis == "x" else (x, z + i) if axis == "z" else (x, z)
             lines.append(" ".join([p[0], str(cx), str(y), str(cz), *p[4:]]))
     return from_compact("\n".join(lines))
+
+
+def _spaced(values):
+    """Split numbers into evenly spaced groups: returns (first, step, count) for each."""
+    left, out = set(values), []
+    while left:
+        first = min(left)
+        best = (0, 1)
+        for second in sorted(v for v in left if v > first)[:64]:
+            step = second - first
+            n = 1
+            while first + step * n in left:
+                n += 1
+            if n > best[1]:
+                best = (step, n)
+        step, n = best
+        for i in range(n):
+            left.discard(first + step * i)
+        out.append((first, step, n))
+    return out
+
+
+def to_loops(parts):
+    """Runs plus repeats: 'r 3 0 2 e z6n64' is that part 64 times, every 6 blocks along z.
+    Parts that sit at the same spot in every row or bit collapse to one line."""
+    rows = {}
+    for line in to_runs(parts).splitlines():
+        p = line.split()
+        rows.setdefault((p[0], int(p[1]), int(p[2]), tuple(p[4:])), []).append(int(p[3]))
+    by_z = {}
+    for (kind, x, y, extra), zs in rows.items():
+        for z, step, n in _spaced(zs):
+            by_z.setdefault((kind, y, extra, z, step, n), []).append(x)
+    lines = []
+    for (kind, y, extra, z, step, n), xs in by_z.items():
+        for x, xstep, xn in _spaced(xs):
+            text = f"{kind} {x} {y} {z}" + (" " + " ".join(extra) if extra else "")
+            if n > 1:
+                text += f" z{step}n{n}"
+            if xn > 1:
+                text += f" x{xstep}n{xn}"
+            lines.append(text)
+    return "\n".join(lines)
+
+
+def from_loops(text):
+    """The reverse of to_loops. Also reads plain run and compact lines, so it can read any answer."""
+    plain = []
+    for line in text.strip().splitlines():
+        p = line.split()
+        repeats = {"z": (0, 1), "x": (0, 1)}
+        while len(p) > 4 and re.fullmatch(r"[xz]\d+n\d+", p[-1]):
+            axis, step, n = p[-1][0], *map(int, p[-1][1:].split("n"))
+            repeats[axis] = (step, n)
+            p = p[:-1]
+        for i in range(repeats["x"][1]):
+            for j in range(repeats["z"][1]):
+                q = list(p)
+                q[1] = str(int(p[1]) + i * repeats["x"][0])
+                q[3] = str(int(p[3]) + j * repeats["z"][0])
+                plain.append(" ".join(q))
+    return from_runs("\n".join(plain))
 
 
 def design_parts(name, n=None):
