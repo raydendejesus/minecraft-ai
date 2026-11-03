@@ -34,17 +34,35 @@ def exam():
     return float(m[3])
 
 
+def keep(name, out):
+    """Every step's full output is saved, so a failure can be read afterward."""
+    with open(os.path.join(O.HERE, f"overnight2_{name}.txt"), "a", encoding="utf-8") as f:
+        f.write(f"\n--- {time.strftime('%Y-%m-%d %H:%M')}\n{out}")
+
+
+def why(out):
+    lines = [l.strip() for l in out.strip().splitlines()]
+    return lines[-1][:160] if lines else ""
+
+
 def train(args, hours, label):
     code, out = O.run(["train.py", *args], hours * HOUR)
+    keep("training", out)
     last = [l.strip() for l in out.splitlines() if "accuracy" in l][-1:]
-    O.note(f"{label} finished (exit {code}) {last[0] if last else ''}")
+    O.note(f"{label} finished (exit {code}) {last[0] if last else ''} {why(out) if code else ''}")
     return code == 0
 
 
 def main():
     O.note("=== long run started ===")
-    fresh = ["--task", "designer", "--dim", "360", "--layers", "8", "--ctx", "6144", "--steps", "60000", "--batch", "48"]
+    # dim 384 / 8 heads = 48 per head. Head sizes must be multiples of 8, or attention falls back
+    # to a slow mode that runs out of GPU memory on long answers
+    fresh = ["--task", "designer", "--dim", "384", "--layers", "7", "--ctx", "6144", "--steps", "60000", "--batch", "48"]
     if not train(fresh, 11, "15M model training"):
+        model_file = os.path.join(O.HERE, "designer.pt")
+        if not os.path.exists(model_file):
+            O.note("training failed before its first save, stopping here: nothing else can run without it")
+            return
         O.note("training stopped early, waiting 3 minutes then resuming from the last save")
         time.sleep(180)
         train(["--task", "designer", "--resume", "--steps", "30000", "--batch", "48"], 6, "15M model training, resumed")
@@ -62,17 +80,19 @@ def main():
     O.note(f"15M model writing machines from memory: {m[0] if m else 'check failed to run'}")
 
     code, out = O.run(["rl_fight.py", "--updates", "300", "--focus", "duel"], 3 * HOUR)
-    O.note(f"Fight RL finished (exit {code})")
+    keep("fight", out)
+    O.note(f"Fight RL finished (exit {code}) {why(out)}")
     code, out = O.run(["exam_fight.py"], HOUR)
     for line in out.splitlines():
         if "won" in line or "passed" in line:
             O.note("  fight exam: " + line.strip())
 
     shutil.copy(os.path.join(O.HERE, "planner.pt"), os.path.join(O.HERE, "planner_before_rl.pt"))
-    O.note("Planner RL starting (lighter load). This is the job that has crashed the GPU before.")
-    code, out = O.run(["rl_planner.py", "--updates", "200", "--games", "16"], 3 * HOUR)
+    O.note("Planner RL starting (lighter load).")
+    code, out = O.run(["rl_planner.py", "--updates", "300", "--games", "16"], 3 * HOUR)
+    keep("planner", out)
     best = [l.strip() for l in out.splitlines() if "RL start" in l or "RL done" in l]
-    O.note(f"Planner RL finished (exit {code}): {' / '.join(best)}")
+    O.note(f"Planner RL finished (exit {code}): {' / '.join(best)} {why(out) if code else ''}")
     O.note("=== long run finished ===")
 
 

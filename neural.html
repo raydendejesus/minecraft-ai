@@ -192,7 +192,7 @@ function show(s) {
   $('#clock').textContent = s.clock;
   const m = s.model, live = !!(m && m.live && !m.done);
   $('#dot').classList.toggle('on', !!s.job);
-  const name = live ? m.job.replace('merged training', 'Builder training') : s.job;
+  const name = live ? m.job.replace('merged training', 'Builder training').replace('designer training', '15M model learning to design') : s.job;
   $('#job').textContent = name || 'Nothing running right now';
   const also = live && s.job && s.job.startsWith('Redstone') ? `   Also running: ${s.job} (${s.detail})` : '';
   $('#detail').textContent = live ? `Step ${m.step.toLocaleString()} of ${m.total.toLocaleString()}${also}` : s.detail;
