@@ -286,8 +286,9 @@ block, more for turns and climbs.
     same level. Its wires got better (65% now match the teacher, up from about half), but one miss
     was the simplest goal of all: it designed "b" correctly, then built "b and c". Circuits with no
     gates are only a handful of its 16,000 circuit lessons
-  - 2 rounds after that: **10 of 15**, the best so far. Everything up to 5 gates passed; two
-    6-gate circuits got 14 of 16 rows; the three biggest (6 and 7 gates) got 6 to 10 rows
+  - 2 rounds after that: **10 of 15**, the best so far. Everything up to 4 gates passed (including
+    "b" this time), 1 of 2 at 5 gates (the other got 14 of 16 rows); the 6- and 7-gate circuits
+    got 6 to 14 rows
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
