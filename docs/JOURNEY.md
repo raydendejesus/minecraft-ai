@@ -274,7 +274,14 @@ block, more for turns and climbs.
   - about half the wires matched
   - in the lab, **1 of 15 AI-built circuits worked on all 16 rows**; most got 8 to 14 rows right.
     Wires are the weak part: its own routes are often shorter but run into another wire
-- more practice rounds are running
+- 3 more rounds on build order:
+  - offline, its circuit matched the teacher's exactly for 6, then 8, then 10 of 22 goals
+  - in the lab, **9 of 15 AI-designed, AI-built circuits worked on all 16 rows**, up from 1
+  - every goal up to 4 gates passed; the misses were 5 to 7 gates, with 8 to 11 rows right
+  - it still writes all 19 machines from memory
+  - design exam: 98% or better on every level except one: the 9 one-gate goals swing between
+    67% and 89%, where they used to be at 95% or higher
+- practice continues, with a lab test every 2 rounds, until 13 of 15 work or it stops improving
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the

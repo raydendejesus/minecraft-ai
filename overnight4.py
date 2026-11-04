@@ -11,6 +11,7 @@ it knows. Logs to overnight4_report.txt.
 
     python overnight4.py              all of it
     python overnight4.py --more 3     3 more practice rounds (teacher and lesson bank already done)
+    python overnight4.py --until 6    practise and lab-test until its circuits work, up to 6 rounds
 """
 
 import os
@@ -32,10 +33,14 @@ def last(out, pattern):
 
 
 def main():
+    if "--until" in sys.argv:
+        keep_going(int(sys.argv[sys.argv.index("--until") + 1]))
+        return
     if "--more" in sys.argv:
         rounds = int(sys.argv[sys.argv.index("--more") + 1])
         O.note(f"=== the designer keeps practising its circuits: {rounds} more rounds ===")
         practice_and_test(rounds)
+        check_machines()
         return
     O.note("=== the designer learns to build its circuits ===")
     code, out = O.run(["test_circuits.py", "24"], 3 * T.HOUR)
@@ -58,9 +63,37 @@ def main():
         if code:
             return
     practice_and_test(ROUNDS)
+    check_machines()
+
+
+def keep_going(max_rounds, lab_every=2, good_enough=13, patience=2):
+    """Practice in blocks of lab_every rounds, testing on the lab after each block. Stops once
+    good_enough of 15 circuits work, after `patience` lab tests in a row with no new best, or
+    after max_rounds."""
+    O.note(f"=== the designer practises until its circuits work (up to {max_rounds} rounds) ===")
+    best, stale, done = -1, 0, 0
+    while done < max_rounds:
+        n = min(lab_every, max_rounds - done)
+        good = practice_and_test(n)
+        done += n
+        if good is None:
+            O.note("lab test didn't run: stopping")
+            return
+        if good >= good_enough:
+            O.note(f"{good}/15 circuits work: good enough, stopping")
+            break
+        if good > best:
+            best, stale = good, 0
+        else:
+            stale += 1
+            if stale >= patience:
+                O.note(f"no new best for {patience} lab tests (best {best}/15): stopping")
+                break
+    check_machines()
 
 
 def practice_and_test(rounds):
+    """rounds of practice, then the lab test. Returns how many AI circuits worked, or None."""
     for round_no in range(1, rounds + 1):
         O.note(f"practice round {round_no} of {rounds}: 20,000 steps, circuits added to the full mix")
         T.train(["--task", "designer", "--resume", "--steps", "20000", "--batch", "48"], 4, "practice")
@@ -78,7 +111,11 @@ def practice_and_test(rounds):
         if "/16" in line:
             O.note("  lab: " + line.strip())
     O.note(last(out, r"AI-designed, AI-built circuits that work in the lab: .*") or f"lab test failed {T.why(out)}")
+    m = re.search(r"work in the lab: (\d+)/\d+", out)
+    return int(m[1]) if m else None
 
+
+def check_machines():
     code, out = O.run(["check_machines.py", "designer.pt"], 2 * T.HOUR)
     O.note("machines from memory: " + (last(out, r"\d+/\d+ machines exact") or "check failed to run"))
     O.note("=== finished ===")
