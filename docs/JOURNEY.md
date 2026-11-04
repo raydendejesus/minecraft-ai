@@ -282,6 +282,10 @@ block, more for turns and climbs.
   - design exam: 98% or better on every level except one: the 9 one-gate goals swing between
     67% and 89%, where they used to be at 95% or higher
 - practice continues, with a lab test every 2 rounds, until 13 of 15 work or it stops improving
+  - 2 rounds later: 7 of 15 in the lab. 15 circuits is a small test, so 9 and 7 are about the
+    same level. Its wires got better (65% now match the teacher, up from about half), but one miss
+    was the simplest goal of all: it designed "b" correctly, then built "b and c". Circuits with no
+    gates are only a handful of its 16,000 circuit lessons
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
