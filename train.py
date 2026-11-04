@@ -120,7 +120,8 @@ def main():
         lr =lr_max * min(1, step / warmup) * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * step / steps)))
         for g in opt.param_groups:
             g["lr"] = lr
-        if args.task in ("machines", "designer") and step % 3 == 0:   # a whole machine: only a few fit at once
+        if args.task in ("machines", "designer") and step % getattr(task, "LONG_EVERY", 3) == 0:
+            # a whole machine (or circuit): only a few fit at once
             x, y = make_batch(task, 3, corrections, config["ctx"], device, sampler=task.machine_sample)
         else:
             x, y = make_batch(task, args.batch, corrections, config["ctx"], device)

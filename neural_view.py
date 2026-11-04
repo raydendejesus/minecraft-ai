@@ -17,8 +17,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = 8842
 STALE = 30      # seconds before a model snapshot counts as finished
 
-JOBS = (("test_ai_machines.py", "The AI's build is being tested on the lab server", "overnight_report.txt"),
-        ("check_machines.py", "The AI is writing out every machine from memory", "overnight_report.txt"),
+JOBS = (("test_ai_circuits.py", "The AI is designing and building circuits for goals it never saw", "overnight4_report.txt"),
+        ("test_circuits.py", "Lab check: the teacher's circuit lessons", "overnight4_report.txt"),
+        ("build_circuit_bank.py", "Writing circuit lessons", "overnight4_report.txt"),
+        ("exam_design.py", "The AI is taking its design exam (goals it has never seen)", "overnight2_report.txt"),
+        ("test_ai_machines.py", "The AI's build is being tested on the lab server", "overnight_report.txt"),
+        ("check_machines.py", "The AI is writing out every machine from memory", "overnight2_report.txt"),
+        ("rl_fight.py", "Fight model practicing (RL)", "rl_fight_log.txt"),
+        ("rl_planner.py", "Survival Planner practicing (RL)", "rl_log.txt"),
+        ("train.py", "Model training", "overnight4_report.txt"),
+        ("overnight4", "The designer learns to build its circuits", "overnight4_report.txt"),
+        ("overnight3", "Design practice until every level passes", "overnight2_report.txt"),
+        ("overnight2", "Long run", "overnight2_report.txt"),
         ("overnight", "Overnight chain", "overnight_report.txt"),
         ("test_ram.py", "Redstone test: RAM on the lab server", "ram128_run.txt"),
         ("test_adder.py", "Redstone test: adder on the lab server", None),
@@ -42,7 +52,7 @@ def last_line(name):
         return ""
 
 
-MODEL_FILES = (("machines", "builder_machines.pt"), ("merged", "builder_merged.pt"), ("planner", "planner.pt"),
+MODEL_FILES = (("designer", "designer.pt"), ("design exam", "designer.pt"), ("machines", "builder_machines.pt"), ("merged", "builder_merged.pt"), ("planner", "planner.pt"),
                ("Survival Planner", "planner.pt"), ("fight", "fight.pt"), ("Fight", "fight.pt"), ("builder", "builder.pt"))
 SHOWN = 20          # neurons drawn per layer
 _weights = {"file": None, "mtime": None, "state": None}

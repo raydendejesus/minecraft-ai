@@ -71,7 +71,7 @@ def publish(model, job, step, total, loss, sample, done=False):
         if req.startswith("design "):              # any design that works is right
             import design_data
             right = design_data.works(req, typed)
-        state = {"job": job, "step": step, "total": total, "loss": round(float(loss), 4), "time": now,
+        state = {"job": job, "step": step, "total": total, "loss": None if loss is None else round(float(loss), 4), "time": now,
                  "request": req, "answer": answer, "typed": typed, "right": right, "frames": frames,
                  "params": sum(p.numel() for p in model.parameters()), "done": done}
         tmp = STATE + ".tmp"

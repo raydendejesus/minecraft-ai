@@ -236,6 +236,46 @@ Rayden's call: have the AI build everything Claude built, and expand its memory 
   server from its own answers, with none of Claude's parts placed. Counter, adder, decoder, ALU and
   RAM sticks of 16, 64 and 128 bytes all passed
 
+## 24. The designer: inventing circuits, not copying them
+Reproducing lessons isn't designing, so a bigger model (14.8M parameters, `designer.pt`) got a new
+kind of problem: "design 0110..." gives what a lamp should do for all 16 combinations of four
+levers, and it has to write a logic formula that does exactly that. A design counts when it
+works, not when it matches the teacher.
+- all 65,536 possible goals exist; 1 in 10 is locked away and never shown in training, and the
+  exam uses only those
+- the easiest goals were barely practised (1 lesson in 1,000), so it scored 0% and 56% on them;
+  half its practice now gives every difficulty level an equal share
+- it keeps its whole old lesson mix, so it stays a general Minecraft model: after practice it
+  still wrote all 19 machines exactly
+- result: **99.4% on goals it has never seen, every difficulty level 95% or higher**
+- Claude tried "natural selection" (5 attempts, keep the best). Rayden stopped it: that only works
+  for one narrow task, and this is a general agent. It was removed.
+
+## 25. From its own formula to its own redstone
+Next, the designer turns its formula into blocks: "redstone circuit <formula>". The lessons come
+from a teacher that Claude wrote (`circuit.py`). It places one lab-tested gate per and / or / xor /
+not, and a router lays every wire. Rayden asked that every block a wire crosses costs something,
+so the wire takes the shortest route rather than wandering. The router is an A* search: 1 per
+block, more for turns and climbs.
+- before teaching anything, the teacher's own circuits had to pass the lab on all 16 rows.
+  The first try passed 16 of 24 because of:
+  - deep circuits needing 7 s to settle
+  - a wire's own support block cutting its stair step
+  - a branch touching its own wire across a repeater, which latched the signal on forever
+  - after the fixes: 23 of 23, plus a 7-gate circuit 124 blocks long once the lab area grew
+- the test (`test_ai_circuits.py`): for locked goals, the AI designs, then writes the blocks for
+  ITS OWN formula, and only what it wrote is placed in the lab
+- first lesson format (every block sorted by type and position): after 2 rounds it never wrote a
+  circuit right, because the very first line depended on the whole finished layout
+- build-order format: inputs, then each gate where it chose to put it, then each wire block by
+  block. After 1 round on it:
+  - every gate's blocks were right (193 of 193)
+  - about 93% of the gate positions matched the teacher's layout
+  - about half the wires matched
+  - in the lab, **1 of 15 AI-built circuits worked on all 16 rows**; most got 8 to 14 rows right.
+    Wires are the weak part: its own routes are often shorter but run into another wire
+- more practice rounds are running
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

@@ -41,3 +41,6 @@ overnight_*.txt
 ai_machines/
 overnight2_*.txt
 design_table.bin
+circuit_lessons*.jsonl
+ai_circuits/
+overnight*_report.txt

@@ -1,9 +1,9 @@
 {
   "pause_while_gaming": false,
-  "duty": 0.8,
+  "duty": 0.65,
   "vram_fraction": 0.5,
   "priority": "below_normal",
-  "max_temp": 83,
-  "slow_temp": 79,
-  "resume_temp": 77
+  "max_temp": 82,
+  "slow_temp": 76,
+  "resume_temp": 75
 }

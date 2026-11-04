@@ -192,14 +192,16 @@ function show(s) {
   $('#clock').textContent = s.clock;
   const m = s.model, live = !!(m && m.live && !m.done);
   $('#dot').classList.toggle('on', !!s.job);
-  const name = live ? m.job.replace('merged training', 'Builder training').replace('designer training', '15M model learning to design') : s.job;
+  const name = live ? m.job.replace('merged training', 'Builder training').replace('designer training', '15M model learning to design')
+    .replace('design exam', 'Design exam: goals it has never seen') : s.job;
   $('#job').textContent = name || 'Nothing running right now';
   const also = live && s.job && s.job.startsWith('Redstone') ? `   Also running: ${s.job} (${s.detail})` : '';
-  $('#detail').textContent = live ? `Step ${m.step.toLocaleString()} of ${m.total.toLocaleString()}${also}` : s.detail;
+  const unit = m && m.job === 'design exam' ? 'Goal' : 'Step';
+  $('#detail').textContent = live ? `${unit} ${m.step.toLocaleString()} of ${m.total.toLocaleString()}${also}` : s.detail;
 
   const stats = $('#stats'); stats.textContent = '';
   if (live) {
-    stats.append(stat('Loss (lower is better)', m.loss.toFixed(4)));
+    if (m.loss !== null) stats.append(stat('Loss (lower is better)', m.loss.toFixed(4)));
     const firing = stat('Neurons firing', lastFiring);
     firing.querySelector('b').id = 'firingNow';
     stats.append(firing);

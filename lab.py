@@ -21,10 +21,11 @@ FLOOR_Y = 100
 
 
 class Lab:
-    def __init__(self, verbose=False, far_z=120):
-        """far_z: how far south the test area reaches. A ticking area is limited to 100 chunks,
-        so long builds use several, chained along z."""
+    def __init__(self, verbose=False, far_z=120, far_x=120):
+        """far_z / far_x: how far south / east the test area reaches. A ticking area is limited
+        to 100 chunks, so big builds use several, tiled along x and z."""
         self.far_z = far_z
+        self.far_x = far_x
         self.verbose = verbose
         self.lines = queue.Queue()
         self.proc = None
@@ -58,13 +59,16 @@ class Lab:
             raise RuntimeError("lab server didn't start")
         self.cmd("tickingarea remove_all")
         # 9 chunks wide x 11 long = 99 chunks per area
-        for n, z0 in enumerate(range(-16, self.far_z + 1, 176)):
-            self.cmd(f"tickingarea add -16 0 {z0} 127 319 {z0 + 175} lab{n} true")
+        n = 0
+        for x0 in range(-16, self.far_x + 1, 144):
+            for z0 in range(-16, self.far_z + 1, 176):
+                self.cmd(f"tickingarea add {x0} 0 {z0} {x0 + 143} 319 {z0 + 175} lab{n} true")
+                n += 1
         self.cmd("gamerule doDaylightCycle false")
         for _ in range(120):                     # wait until the far corner has actually loaded
             # "couldn't be placed" also proves it's loaded (the block is already there);
             # an unloaded spot says "outside of the world"
-            reply = " ".join(self.cmd(f"setblock 120 {FLOOR_Y} {self.far_z} stone", wait=0.5))
+            reply = " ".join(self.cmd(f"setblock {self.far_x} {FLOOR_Y} {self.far_z} stone", wait=0.5))
             if "placed" in reply:
                 break
         else:
@@ -94,12 +98,14 @@ class Lab:
 
     def reset_area(self):
         """Wipe the test area and lay a fresh stone floor."""
-        # fills are size-limited, so one layer and 200 blocks of length at a time
-        for z0 in range(-8, self.far_z + 1, 200):
-            z1 = min(z0 + 199, self.far_z)
-            self.cmd(f"fill -8 {FLOOR_Y} {z0} 120 {FLOOR_Y} {z1} smooth_stone", wait=0.1)
-            for y in range(FLOOR_Y + 1, FLOOR_Y + 13):
-                self.cmd(f"fill -8 {y} {z0} 120 {y} {z1} air", wait=0.1)
+        # fills are size-limited, so one layer and 129 x 200 blocks at a time
+        for x0 in range(-8, self.far_x + 1, 129):
+            x1 = min(x0 + 128, self.far_x)
+            for z0 in range(-8, self.far_z + 1, 200):
+                z1 = min(z0 + 199, self.far_z)
+                self.cmd(f"fill {x0} {FLOOR_Y} {z0} {x1} {FLOOR_Y} {z1} smooth_stone", wait=0.1)
+                for y in range(FLOOR_Y + 1, FLOOR_Y + 13):
+                    self.cmd(f"fill {x0} {y} {z0} {x1} {y} {z1} air", wait=0.1)
 
     def sync(self, timeout=600):
         """Wait until the server has worked through every command sent so far (big builds
