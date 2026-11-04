@@ -16,23 +16,29 @@ import design_data as D
 EVAL_LIMIT = 160                      # characters allowed for an answer during the training log
 DESIGN_SHARE = 0.6
 CIRCUITS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "circuit_lessons.jsonl")
+FIXES = os.path.join(os.path.dirname(CIRCUITS), "circuit_corrections.jsonl")
 _levels = None
 _circuits = None
+_fixes = None
 if os.path.exists(CIRCUITS):
     LONG_EVERY = 2                    # circuits joined the long lessons, so they get more turns
 
 
 def machine_sample():
     """A long lesson: a whole machine, or (once circuit_lessons.jsonl exists) two times in three a
-    circuit for a logic formula, built from blocks."""
-    global _circuits
+    circuit for a logic formula, built from blocks. A third of those circuits are ones it got wrong
+    (circuit_corrections.jsonl), so its mistakes get extra practice."""
+    global _circuits, _fixes
     if _circuits is None:
-        _circuits = []
+        _circuits, _fixes = [], []
         if os.path.exists(CIRCUITS):
             with open(CIRCUITS, encoding="utf-8") as f:
                 _circuits = [tuple(json.loads(line)) for line in f]
+        if os.path.exists(FIXES):
+            with open(FIXES, encoding="utf-8") as f:
+                _fixes = [tuple(json.loads(line)) for line in f]
     if _circuits and random.random() < 2 / 3:
-        return random.choice(_circuits)
+        return random.choice(_fixes if _fixes and random.random() < 1 / 3 else _circuits)
     return data.machine_sample()
 
 

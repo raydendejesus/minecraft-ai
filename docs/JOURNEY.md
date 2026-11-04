@@ -289,6 +289,17 @@ block, more for turns and climbs.
   - 2 rounds after that: **10 of 15**, the best so far. Everything up to 4 gates passed (including
     "b" this time), 1 of 2 at 5 gates (the other got 14 of 16 rows); the 6- and 7-gate circuits
     got 6 to 14 rows
+  - the last 2 rounds: 9 of 15. It levelled off at 9 to 10: everything small works, and the
+    big ones fail
+- why the big ones fail: a quick check with no lab (`circuit.shorts`) looks for wires of two
+  different signals touching. It matched the lab on all 15 circuits. Every one that failed had a
+  short, every one that passed had none, and the teacher's circuits have none. So it knows its
+  gates and can lay a wire, but it doesn't yet keep clear of the wires it already laid, mostly
+  near the levers where many signals leave side by side
+- next: homework marking (`circuit_corrections.py`). It writes circuits for practice formulas
+  (never exam goals), the ones with shorts or unreadable blocks are marked, and the correct circuit
+  for each goes back into its practice more often, inside the full lesson mix. Nothing is picked
+  from several tries: it just practises its own mistakes more
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the

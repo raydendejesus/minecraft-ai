@@ -12,6 +12,7 @@ it knows. Logs to overnight4_report.txt.
     python overnight4.py              all of it
     python overnight4.py --more 3     3 more practice rounds (teacher and lesson bank already done)
     python overnight4.py --until 6    practise and lab-test until its circuits work, up to 6 rounds
+    python overnight4.py --until 6 --homework    the same, giving its mistakes extra practice
 """
 
 import os
@@ -34,7 +35,7 @@ def last(out, pattern):
 
 def main():
     if "--until" in sys.argv:
-        keep_going(int(sys.argv[sys.argv.index("--until") + 1]))
+        keep_going(int(sys.argv[sys.argv.index("--until") + 1]), homework="--homework" in sys.argv)
         return
     if "--more" in sys.argv:
         rounds = int(sys.argv[sys.argv.index("--more") + 1])
@@ -66,13 +67,19 @@ def main():
     check_machines()
 
 
-def keep_going(max_rounds, lab_every=2, good_enough=13, patience=2):
+def keep_going(max_rounds, lab_every=2, good_enough=13, patience=2, homework=False):
     """Practice in blocks of lab_every rounds, testing on the lab after each block. Stops once
     good_enough of 15 circuits work, after `patience` lab tests in a row with no new best, or
-    after max_rounds."""
-    O.note(f"=== the designer practises until its circuits work (up to {max_rounds} rounds) ===")
+    after max_rounds. homework: before each block, mark its circuits for practice formulas and
+    give the ones it got wrong extra practice (circuit_corrections.py)."""
+    O.note(f"=== the designer practises until its circuits work (up to {max_rounds} rounds"
+           + (", homework marked before each block" if homework else "") + ") ===")
     best, stale, done = -1, 0, 0
     while done < max_rounds:
+        if homework:
+            code, out = O.run(["circuit_corrections.py", "designer.pt", "120"], 2 * T.HOUR)
+            O.note("homework: " + (last(out, r"clean circuits by size: .*") or f"failed {T.why(out)}"))
+            O.note("  " + (last(out, r"\d+ corrections added.*") or ""))
         n = min(lab_every, max_rounds - done)
         good = practice_and_test(n)
         done += n

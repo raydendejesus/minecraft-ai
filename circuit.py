@@ -381,6 +381,28 @@ def to_steps(pieces):
     return "\n".join(out)
 
 
+def shorts(text):
+    """Pairs of different signals whose wires touch in build-order text: dust next to dust, level
+    or one up / down, joins into one wire. No lab needed, and on the AI's circuits it agreed with
+    the lab: every circuit that failed there had a short, every one that passed had none."""
+    nets, cur = {}, None
+    for line in text.strip().splitlines():
+        p = line.split()
+        if p and p[0] == "#":
+            cur = " ".join(p[2:p.index("to")]) if p[1] == "wire" and "to" in p else None
+        elif cur and p and p[0] == "d":
+            nets.setdefault(cur, set()).update((x, y, z) for x, y, z, _ in from_steps(line))
+    owner = {c: n for n, cells in nets.items() for c in cells}
+    found = set()
+    for (x, y, z), n in owner.items():
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            for dy in (-1, 0, 1):
+                m = owner.get((x + dx, y + dy, z + dz))
+                if m and m != n:
+                    found.add(tuple(sorted((n, m))))
+    return found
+
+
 def from_steps(text):
     """The reverse of to_steps: the AI's text -> parts. Raises ValueError on anything malformed."""
     lines, ox, oz = [], 0, 0
