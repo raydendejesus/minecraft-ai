@@ -300,6 +300,14 @@ block, more for turns and climbs.
   (never exam goals), the ones with shorts or unreadable blocks are marked, and the correct circuit
   for each goes back into its practice more often, inside the full lesson mix. Nothing is picked
   from several tries: it just practises its own mistakes more
+  - two blocks of homework: 9 of 15, then 8 of 15 in the lab. The circuits with no gates were
+    fixed (6 of 15 clean, then 15 of 15), but the big ones didn't move (6 gates: 4, 2, 1 of 15)
+- where the shorts are: 76% right next to the levers, where 8 input signals fan out to every gate;
+  83% between two input wires; 82% on routes the AI chose itself, a block off the teacher's
+- next: a design rule real circuit boards use too, clearance. The teacher keeps a block of air
+  between different signals' wires, so one slip no longer touches. On the teacher's own
+  circuits the spots where one slip would short went from 36 to 6 per circuit, for 2% more
+  parts. It has to pass the lab before it teaches anything (`overnight_circuits2.py`)
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
