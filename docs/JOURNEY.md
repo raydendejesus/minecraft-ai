@@ -350,8 +350,16 @@ Rayden wanted a model for player-vs-player only: no mobs, no hordes, lots of fig
 - homework rounds: it plays, the teacher marks every move it reaches, and its mistakes get
   practice. It agreed with the teacher on only 42% of moves (many moves are close calls), so
   each round adds about 7,500 corrections
-  - after round 1: easy exam 99%, and against the teacher **58% won, 25% lost** (from 48 / 28)
-- next: 2 more rounds, then the math / geometry / hitbox lessons
+  - against the teacher, won 57%, then 62%, then 52% over the three rounds (40 duels each, so
+    about ±8%): better than the first 48%, then no clear gain after round 1
+- the math / geometry / hitbox stage, on top of its PvP lessons: 232 of 300 fresh questions
+  exactly right
+  - all the PvP geometry is right: can I reach them from here at this height (51/51), how far away
+    can I hit (28/28), where to aim (43/43), hitbox sizes (32/32), and the facts (no headshot
+    bonus, high ground, hit immunity, shields, W-tap)
+  - the plain math isn't there yet: Pythagoras 41 of 81, the distance between two 3D points 0 of
+    28. Exact decimals, one character at a time, are hard for a model this size
+- `pvp.pt` now: easy exam 98%, against the teacher 58% won / 28% lost, 6 ms a move
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
