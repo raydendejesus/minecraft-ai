@@ -45,3 +45,5 @@ circuit_lessons*.jsonl
 ai_circuits/
 overnight*_report.txt
 circuit_corrections.jsonl
+pvp_lessons.jsonl*
+pvp_report.txt

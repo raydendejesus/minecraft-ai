@@ -25,7 +25,8 @@ TASKS = {"builder": ("data", "builder.pt"), "planner": ("planner_data", "planner
          "fight": ("fight_data", "fight.pt"),
          "brain": ("brain_data", "brain.pt"),      # everything merged, learned from the specialists
          "machines": ("data", "builder_machines.pt"),   # Builder with a longer memory, big machines
-         "designer": ("designer_data", "designer.pt")}  # bigger model that also designs circuits
+         "designer": ("designer_data", "designer.pt"),  # bigger model that also designs circuits
+         "pvp": ("pvp_data", "pvp.pt")}                # player vs player combat only
 
 
 def make_batch(task, n, corrections, ctx, device, sampler=None):
