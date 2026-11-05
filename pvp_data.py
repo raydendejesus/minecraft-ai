@@ -15,6 +15,7 @@ pvp_lessons.jsonl. 1 in 20 is kept apart for the training log's accuracy check.
 """
 
 import json
+import math
 import os
 import random
 
@@ -108,6 +109,55 @@ def pvp_question():
     return f"pvpkit {k}", "# " + " ".join(f"{a} {v}" for a, v in S.KITS[k].items())
 
 
+GEOMETRY = os.environ.get("MCAI_GEOMETRY") == "1"     # the math / geometry / hitbox stage
+
+
+def geometry_question():
+    """Math and geometry a PvP player uses, with the numbers the fights themselves use (pvp_sim)."""
+    r = random
+    kind = r.choice(["hyp", "hyp", "dist3", "reach", "reach", "farthest", "aim", "hitbox", "fact"])
+    if kind == "hyp":                                  # Pythagoras
+        a, b = round(r.uniform(0.2, 6), 1), round(r.uniform(0.2, 6), 1)
+        return f"math hypotenuse {a} {b}", f"# {math.hypot(a, b):.2f}"
+    if kind == "dist3":
+        p = [round(r.uniform(-5, 5), 1) for _ in range(6)]
+        d = math.dist(p[:3], p[3:])
+        return "math distance " + " ".join(map(str, p)), f"# {d:.2f}"
+    dy = r.choice([-2, -1, 0, 1, 2])
+    me_sneak, t_sneak = r.random() < 0.25, r.random() < 0.25
+    eye, height = (S.SNEAK if me_sneak else S.STAND)[0], (S.SNEAK if t_sneak else S.STAND)[1]
+    pose = (" me sneaking" if me_sneak else "") + (" target sneaking" if t_sneak else "")
+    where = f"up {dy}" if dy > 0 else f"down {-dy}" if dy < 0 else "level"
+    if kind == "reach":                                # can I hit them from here?
+        dist = round(r.uniform(2.0, 4.0), 1)
+        gap = S.reach_gap(dist, dy, eye, height)
+        return f"pvpmath reach {dist} {where}{pose}", f"# {'yes' if gap <= S.REACH else 'no'} {gap:.2f}"
+    if kind == "farthest":                             # how far away can I hit them?
+        far = next(x / 100 for x in range(700, 0, -1) if S.reach_gap(x / 100, dy, eye, height) <= S.REACH)
+        return f"pvpmath farthest {where}{pose}", f"# {far:.2f}"
+    if kind == "aim":                                  # the nearest part of their hitbox
+        e = eye - dy                                   # your eyes, measured from their feet
+        if e < 0:
+            part = "feet, the bottom of their box is above your eyes"
+        elif e > height:
+            part = "head, the top of their box is below your eyes"
+        else:
+            part = "straight ahead at their " + ("legs" if e < 0.75 else "body" if e < height - 0.4 else "head")
+        return f"pvpmath aim {where}{pose}", f"# {part}"
+    if kind == "hitbox":
+        p = r.choice(["standing", "sneaking"])
+        e, h = S.STAND if p == "standing" else S.SNEAK
+        return f"pvpinfo hitbox {p}", f"# 0.6 wide {h} tall eyes {e}"
+    fact = r.choice([
+        ("pvpinfo reach", "# 3 blocks from your eyes to the nearest point of their hitbox"),
+        ("pvpinfo headshot", "# no headshot bonus, a hit does the same damage anywhere, aim at the nearest part for reach"),
+        ("pvpinfo high ground", "# higher up you reach down a slope to their head, so you must be closer than they must be"),
+        ("pvpinfo immunity", "# 0.5 s after a hit, only a bigger hit does the difference"),
+        ("pvpinfo shield", "# sneak to raise it, 0.25 s to come up, hitting it knocks you back, an axe disables it 5 s"),
+        ("pvpinfo wtap", "# a sprint hit ends your sprint, let go of w and press it again before the next one")])
+    return fact
+
+
 _bank, _held = None, None
 
 
@@ -123,11 +173,13 @@ def _load():
 _answers = {}
 
 
-def sample(corrections, correction_rate=0.1):
+def sample(corrections, correction_rate=0.25):
     _load()
     if corrections and random.random() < correction_rate:
         c = random.choice(corrections)
         return c["req"], c["out"]
+    if GEOMETRY and random.random() < 0.2:
+        return geometry_question()
     if random.random() < 0.05:
         return pvp_question()
     return random.choice(_bank)

@@ -27,10 +27,27 @@ def model_player(ai):
     return move
 
 
+def geometry_quiz(ai, n=300):
+    """Fresh math / geometry / hitbox questions; an answer counts only if it's exactly right."""
+    random.seed(77)
+    qs = [P.geometry_question() for _ in range(n)]
+    right = collections.Counter()
+    total = collections.Counter()
+    for q, a in qs:
+        kind = " ".join(q.split()[:2])
+        total[kind] += 1
+        right[kind] += ai.build(q, limit=120) == a
+    for kind in sorted(total):
+        print(f"  {kind:20s} {right[kind]}/{total[kind]}")
+    print(f"geometry quiz: {sum(right.values())}/{n} exactly right")
+
+
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else "pvp.pt"
     n = int(sys.argv[2]) if len(sys.argv) > 2 else 40
     ai = Builder(path)
+    if "--geometry" in sys.argv:
+        geometry_quiz(ai)
     me = model_player(ai)
     total, think, moves = collections.Counter(), 0.0, 0
     for style, skill in OPPONENTS:

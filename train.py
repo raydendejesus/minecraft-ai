@@ -57,9 +57,12 @@ def evaluate(task, model, corrections, n=60):
     limit = getattr(task, "EVAL_LIMIT", None)
     right = getattr(task, "correct", lambda req, got: got == task.reference(req))
     hits = sum(right(req, b.build(req, limit)) for req in (task.random_request() for _ in range(n)))
-    fixed = sum(b.build(c["req"]) == c["out"] for c in corrections)
+    # at most 200 corrections are checked: homework can add thousands, and checking them all
+    # every 1000 steps would take longer than the training
+    checked = random.sample(corrections, min(200, len(corrections)))
+    fixed = sum(b.build(c["req"]) == c["out"] for c in checked)
     model.train()
-    return hits / n, fixed
+    return hits / n, (fixed, len(checked))
 
 
 def main():
@@ -140,9 +143,10 @@ def main():
         if step % 100 == 0:
             print(f"step {step}/{steps}  loss {loss.item():.4f}  {time.time() - t0:.0f}s", flush=True)
         if step % 1000 == 0 or step == steps:
-            acc, fixed = evaluate(task, model, corrections)
+            acc, (fixed, checked) = evaluate(task, model, corrections)
             print(f"  >> accuracy on new requests: {acc:.0%}   corrections learned: "
-                  f"{fixed}/{len(corrections)}", flush=True)
+                  f"{fixed}/{checked}" + (f" checked of {len(corrections)}" if checked < len(corrections) else ""),
+                  flush=True)
             torch.save({"config": config, "model": model.state_dict()}, CKPT_PATH)
 
     print(f"done, saved {ckpt_name}", flush=True)
