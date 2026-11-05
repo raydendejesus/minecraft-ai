@@ -2,8 +2,8 @@
 
     python exam_pvp.py pvp.pt 40          40 duels per opponent
 
-The model only sees what a player would see (pvp_sim.Duel.state_text) and answers one move per
-quarter second. A move it writes that isn't a real move counts as standing still.
+The model only sees what a player would see (pvp_sim.Duel.state_text) and picks one move per
+quarter second from the moves it could make right now.
 Prints the win rate against each opponent, and how long one move takes to think of.
 """
 
@@ -12,6 +12,7 @@ import random
 import sys
 import time
 
+import pvp_data as P
 import pvp_sim as S
 from model import Builder
 
@@ -19,9 +20,10 @@ OPPONENTS = [(st, 0.9) for st in S.STYLES] + [("expert", 1.0)]
 
 
 def model_player(ai):
+    """The model rates every move it could make right now in one pass and plays its top pick
+    (Builder.choose), the same knowledge as writing the move out, in one step instead of ~6."""
     def move(d, i, r):
-        m = ai.build(d.state_text(i), limit=12)
-        return m if m in S.MOVES else "wait"
+        return ai.choose(d.state_text(i), P.candidates(d, i))
     return move
 
 
