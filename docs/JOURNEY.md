@@ -302,12 +302,28 @@ block, more for turns and climbs.
   from several tries: it just practises its own mistakes more
   - two blocks of homework: 9 of 15, then 8 of 15 in the lab. The circuits with no gates were
     fixed (6 of 15 clean, then 15 of 15), but the big ones didn't move (6 gates: 4, 2, 1 of 15)
+  - the last block: **10 of 15** again, the best so far. Every goal up to 5 gates passed this
+    time; the misses were one 6-gate and two 7-gate circuits (8 to 14 rows right). It still
+    writes all 19 machines from memory
 - where the shorts are: 76% right next to the levers, where 8 input signals fan out to every gate;
   83% between two input wires; 82% on routes the AI chose itself, a block off the teacher's
 - next: a design rule real circuit boards use too, clearance. The teacher keeps a block of air
   between different signals' wires, so one slip no longer touches. On the teacher's own
   circuits the spots where one slip would short went from 36 to 6 per circuit, for 2% more
   parts. It has to pass the lab before it teaches anything (`overnight_circuits2.py`)
+
+## 26. Faster, without getting dumber
+Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
+weights never change, and every fast answer is checked letter for letter against the plain one.
+Measured on an idle GPU:
+- sending commands was never the slow part: the game places them as they arrive
+- the models write about 300 characters a second, and their "thinking" is inside every
+  character, there's no separate thinking step
+- a key/value cache (it stops re-reading its whole answer for every new letter) writes a whole
+  6-gate circuit in 8.8 s instead of 16.8 s, the same circuit. It's used for long answers
+- for moves from a list (PvP), the model rates every legal move in one pass and plays its top
+  pick: 8.5 ms instead of 27 ms, the same move 150 times out of 150
+- a CUDA-graph writer gave the same answers but was slower everywhere, so it isn't used
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the

@@ -106,11 +106,9 @@ class TinyGPT(nn.Module):
 
 
 class FastWriter:
-    """Writes the same answers as TinyGPT.generate(), much faster on the GPU. The model is tiny,
-    so the GPU spent most of each character waiting for Python to hand it ~100 small jobs. Here
-    one character's whole step (every layer, with a fixed-size key/value cache) is recorded once
-    as a CUDA graph and replayed, and the question is read in one pass. The weights are untouched:
-    nothing about how smart it is changes."""
+    """Writes the same answers as TinyGPT.generate() by replaying one character's whole step as a
+    recorded CUDA graph. Measured on an idle GPU it was SLOWER than both other writers (it attends
+    over the whole fixed-size cache every step), so nothing uses it; kept for bench_speed.py."""
 
     def __init__(self, model):
         self.m = m = model
@@ -229,4 +227,8 @@ class Builder:
         self._maybe_reload()
         ids = encode(fmt(request))
         room = self.model.ctx - len(ids) - 1
-        return decode(self.model.generate(ids, max_new=min(room, limit or room))).strip()
+        # with no limit the answer can be thousands of characters (a whole circuit): there the
+        # key/value cache writes twice as fast; on short answers the plain way is a little faster.
+        # Both give the same answer letter for letter (bench_speed.py, idle GPU, 2026-11-05)
+        write = self.model.generate_fast if limit is None else self.model.generate
+        return decode(write(ids, max_new=min(room, limit or room))).strip()

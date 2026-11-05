@@ -48,3 +48,5 @@ circuit_corrections.jsonl
 pvp_lessons.jsonl*
 pvp_report.txt
 circuit_corrections_clearance1.jsonl
+clearance_*.txt
+speed_report.txt
