@@ -317,6 +317,12 @@ block, more for turns and climbs.
     circuits with no gates against about 3,000 of each big size, and the homework fixes that had
     patched this came from the old teacher. Same cure as design practice once needed: every
     circuit size now gets an equal share half the time
+  - next lab test: 7 of 15 again. "b" had the right shape now, but its wire had a 9-block gap:
+    it put the repeater at the wrong spot and skipped the run after it. No short, so the homework
+    had called it clean. A second check (`circuit.breaks`) now marks gaps too: every wire must be
+    one connected piece, reach its gate, and start from its own signal. On the teacher's lessons
+    it finds nothing (0 of 300). On the AI's last 15 lab circuits, shorts + gaps agreed with the
+    lab on 14: every one with either failed, every one with neither passed but one
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The

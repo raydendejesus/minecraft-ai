@@ -421,6 +421,57 @@ def shorts(text):
     return found
 
 
+def breaks(text):
+    """Wires in build-order text that can't carry their signal: not one connected piece, not
+    reaching the gate input it's for, or not starting from its own signal. The lab caught an AI
+    wire with a 9-block gap in it; there was no short, so shorts() called it clean."""
+    pieces, cur = [], None
+    for line in text.strip().splitlines():
+        p = line.split()
+        if p and p[0] == "#":
+            cur = [line, set()]
+            pieces.append(cur)
+        elif cur and p:
+            try:
+                cur[1].update((x, y, z) for x, y, z, b in from_steps(f"{cur[0]}\n{line}")
+                              if b.startswith(("redstone_wire", "unpowered_repeater", "redstone_lamp")))
+            except (ValueError, IndexError):
+                pass
+
+    def touching(a, b):
+        return abs(a[0] - b[0]) + abs(a[2] - b[2]) == 1 and abs(a[1] - b[1]) <= 1
+
+    source = {}                                        # signal -> cells carrying it so far
+    for head, cells in pieces:
+        p = head.split()
+        if len(p) > 1 and p[1] == "inputs":
+            source.update({v: cells for v in list(LEVER_Z) + ["not " + v for v in LEVER_Z]})
+        elif len(p) > 2 and p[1] in ("and", "or", "xor", "not"):
+            source[p[2]] = cells
+    bad = []
+    for head, cells in pieces:
+        p = head.split()
+        if len(p) < 2 or p[1] != "wire" or "to" not in p:
+            continue
+        src = " ".join(p[2:p.index("to")])
+        goal = (int(p[-2]), 0, int(p[-1]))
+        if not cells or goal not in cells:
+            bad.append(src)
+            continue
+        seen, todo = {goal}, [goal]                    # everything must hang together
+        while todo:
+            c = todo.pop()
+            for n in cells:
+                if n not in seen and touching(c, n):
+                    seen.add(n)
+                    todo.append(n)
+        start = source.get(src, set())
+        if seen != cells or not any(touching(c, s) for c in cells for s in start):
+            bad.append(src)
+        source[src] = set(start) | cells
+    return bad
+
+
 def from_steps(text):
     """The reverse of to_steps: the AI's text -> parts. Raises ValueError on anything malformed."""
     lines, ox, oz = [], 0, 0

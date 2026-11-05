@@ -1,7 +1,8 @@
 """Mark the designer's circuit homework: it writes circuits for practice formulas (never a locked
-exam goal), and every one that can't be read or has two signals' wires touching (a short) gets
-the teacher's circuit added to circuit_corrections.jsonl, which designer_data mixes into its
-practice more often. No lab needed: circuit.shorts() agreed with the lab on every circuit.
+exam goal), and every one that can't be read, has two signals' wires touching (a short) or has a
+wire that can't carry its signal (a gap, or not reaching its gate) gets the teacher's circuit
+added to circuit_corrections.jsonl, which designer_data mixes into its practice more often. No
+lab needed: circuit.shorts() + circuit.breaks() agreed with the lab on 14 of 15 AI circuits.
 
     python circuit_corrections.py designer.pt 120
 """
@@ -40,7 +41,7 @@ def main():
         text = ai.build(f"redstone circuit {expr}")
         try:
             C.inputs_and_output(C.from_steps(text))
-            bad = bool(C.shorts(text))
+            bad = bool(C.shorts(text)) or bool(C.breaks(text))
         except Exception:
             bad = True
         right, total = tally.get(g, (0, 0))
