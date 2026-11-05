@@ -325,6 +325,31 @@ Measured on an idle GPU:
   pick: 8.5 ms instead of 27 ms, the same move 150 times out of 150
 - a CUDA-graph writer gave the same answers but was slower everywhere, so it isn't used
 
+## 27. The PvP model
+Rayden wanted a model for player-vs-player only: no mobs, no hordes, lots of fights.
+- a new duel simulator (`pvp_sim.py`) built from the Minecraft Wiki's Bedrock numbers. It covers:
+  - hit immunity, where only a bigger hit deals the difference
+  - reach from the eyes to the nearest point of a 0.6 x 1.8 hitbox, so the higher player has to
+    be closer
+  - armor with toughness, Protection, and Bedrock's Sharpness and Strength
+  - shields raised by sneaking: 0.25 s to come up, hitting one knocks the attacker back, and an
+    axe disables it
+  - W-tap knockback, crits, bows, golden apples, potions, pearls and hunger
+  - 8 kits, flat ground or hills, and 11 opponent styles at random skill levels. The few
+    numbers the wiki doesn't give (knockback distances) are marked as estimates
+- a bug first: whoever moved first got their hit in first, so the same bot beat itself 98% of
+  the time. Now both moves land at once, and the mirror match is 43% / 44%
+- the teacher plans ahead: before every move it plays each option 4 seconds forward 6 times. It
+  won 93% of 45,000 duels, which became 1.9 million lessons
+- `pvp.pt` (4.8M parameters) after one training run, on 480 fixed exam duels it never saw:
+  - **won 98%, lost 0%**: 100% against 9 of the 11 styles, 82% against potters (the rest
+    draws), 95% against the rulebook expert
+  - **5 ms per move**, against a quarter-second game tick
+- that exam got too easy to show progress, so there's a harder one now: duels against the
+  look-ahead teacher itself. The student won 48%, lost 28%, drew 25%
+- next: homework rounds (it plays, the teacher marks every move, its mistakes get practice), then
+  the math / geometry / hitbox lessons
+
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
 redstone mini PC, the Trapper, and the final merge of everything into one Brain.

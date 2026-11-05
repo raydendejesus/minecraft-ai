@@ -8,7 +8,9 @@ Prints the win rate against each opponent, and how long one move takes to think 
 """
 
 import collections
+import os
 import random
+import shutil
 import sys
 import time
 
@@ -68,6 +70,26 @@ def main():
     t = sum(total.values())
     print(f"PvP exam: win {100 * total[0] / t:.0f}%  lose {100 * total[1] / t:.0f}%  draw {100 * total[None] / t:.0f}%"
           f"  ({t} duels, {1000 * think / moves:.0f} ms per move)")
+
+    # the hard tier: the look-ahead teacher itself (it plans 4 s ahead assuming the rulebook
+    # expert's play). The easy tier above hit 98% after the first training, too easy to show
+    # whether more practice helps
+    teacher = lambda d, i, r: P.teacher(d, i, P.EXPERT)
+    res = collections.Counter()
+    for s in range(n):
+        r = random.Random(60_000 + s)
+        random.seed(60_000 + s)
+        d = S.Duel(rng=r)
+        while not d.over():
+            d.step(me(d, 0, r), teacher(d, 1, r))
+        res[d.winner()] += 1
+    print(f"  vs teacher    (look-ahead): win {100 * res[0] / n:.0f}%  lose {100 * res[1] / n:.0f}%  "
+          f"draw {100 * res[None] / n:.0f}%", flush=True)
+    print(f"PvP hard exam: win {100 * res[0] / n:.0f}%  lose {100 * res[1] / n:.0f}%")
+    snap = os.path.join(os.path.dirname(os.path.abspath(path)),
+                        f"pvp_exam_{time.strftime('%m%d_%H%M')}_easy{100 * total[0] / t:.0f}_hard{100 * res[0] / n:.0f}.pt")
+    shutil.copy(path, snap)                        # every examined model is kept, named by its scores
+    print(f"saved as {os.path.basename(snap)}")
 
 
 if __name__ == "__main__":
