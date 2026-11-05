@@ -38,8 +38,30 @@ def machine_sample():
             with open(FIXES, encoding="utf-8") as f:
                 _fixes = [tuple(json.loads(line)) for line in f]
     if _circuits and random.random() < 2 / 3:
-        return random.choice(_fixes if _fixes and random.random() < 1 / 3 else _circuits)
+        if _fixes and random.random() < 1 / 3:
+            return random.choice(_fixes)
+        if random.random() < 0.5:                  # half the time every circuit size gets an equal share
+            sizes = _circuit_sizes()
+            return random.choice(sizes[random.choice(sorted(sizes))])
+        return random.choice(_circuits)
     return data.machine_sample()
+
+
+_sizes = None
+
+
+def _circuit_sizes():
+    """Circuit lessons grouped by how many and / or / xor gates the formula has. Picked at random,
+    only about 1 in 2,000 circuits has no gates at all, and after the lessons changed the AI built a
+    two-gate circuit for "b", a single wire to the lamp (the same gap design practice once had)."""
+    global _sizes
+    if _sizes is None:
+        _sizes = {}
+        for req, out in _circuits:
+            words = req.split()[2:]
+            n = sum(w.strip("()") in ("and", "or", "xor", "nand", "nor") for w in words)
+            _sizes.setdefault(min(n, 7), []).append((req, out))
+    return _sizes
 
 
 def practice_levels():

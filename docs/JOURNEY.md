@@ -311,6 +311,12 @@ block, more for turns and climbs.
   between different signals' wires, so one slip no longer touches. On the teacher's own
   circuits the spots where one slip would short went from 36 to 6 per circuit, for 2% more
   parts. It has to pass the lab before it teaches anything (`overnight_circuits2.py`)
+  - the new teacher passed the lab, 24 of 24. First lab test after 2 rounds on its lessons: 7 of 15.
+    The bigger circuits got closer (5 to 7 gates: 6 to 14 rows right), but the smallest broke: for
+    "b" it built a two-gate circuit instead of one wire to the lamp. The lesson bank has only 7
+    circuits with no gates against about 3,000 of each big size, and the homework fixes that had
+    patched this came from the old teacher. Same cure as design practice once needed: every
+    circuit size now gets an equal share half the time
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
