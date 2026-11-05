@@ -347,8 +347,11 @@ Rayden wanted a model for player-vs-player only: no mobs, no hordes, lots of fig
   - **5 ms per move**, against a quarter-second game tick
 - that exam got too easy to show progress, so there's a harder one now: duels against the
   look-ahead teacher itself. The student won 48%, lost 28%, drew 25%
-- next: homework rounds (it plays, the teacher marks every move, its mistakes get practice), then
-  the math / geometry / hitbox lessons
+- homework rounds: it plays, the teacher marks every move it reaches, and its mistakes get
+  practice. It agreed with the teacher on only 42% of moves (many moves are close calls), so
+  each round adds about 7,500 corrections
+  - after round 1: easy exam 99%, and against the teacher **58% won, 25% lost** (from 48 / 28)
+- next: 2 more rounds, then the math / geometry / hitbox lessons
 
 ## Still to do
 See [FINAL_EXAM.md](../FINAL_EXAM.md): finish the fight exam, the castle + iron armor exam, the
