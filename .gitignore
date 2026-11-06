@@ -50,3 +50,4 @@ pvp_report.txt
 circuit_corrections_clearance1.jsonl
 clearance_*.txt
 speed_report.txt
+paused.json*
