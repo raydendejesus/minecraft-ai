@@ -67,7 +67,7 @@ def main():
     check_machines()
 
 
-def keep_going(max_rounds, lab_every=2, good_enough=13, patience=2, homework=False):
+def keep_going(max_rounds, lab_every=2, good_enough=13, patience=2, homework=False, homework_n=120):
     """Practice in blocks of lab_every rounds, testing on the lab after each block. Stops once
     good_enough of 15 circuits work, after `patience` lab tests in a row with no new best, or
     after max_rounds. homework: before each block, mark its circuits for practice formulas and
@@ -77,7 +77,7 @@ def keep_going(max_rounds, lab_every=2, good_enough=13, patience=2, homework=Fal
     best, stale, done = -1, 0, 0
     while done < max_rounds:
         if homework:
-            code, out = O.run(["circuit_corrections.py", "designer.pt", "120"], 2 * T.HOUR)
+            code, out = O.run(["circuit_corrections.py", "designer.pt", str(homework_n)], 2 * T.HOUR)
             O.note("homework: " + (last(out, r"clean circuits by size: .*") or f"failed {T.why(out)}"))
             O.note("  " + (last(out, r"\d+ corrections added.*") or ""))
         n = min(lab_every, max_rounds - done)

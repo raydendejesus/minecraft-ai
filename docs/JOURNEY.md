@@ -333,6 +333,14 @@ block, more for turns and climbs.
     round. Only 10 small goals are locked away, and the AI has to work them out from 60 practice
     ones (it practises "a", "c", "d", "not b" but never "b" itself), so one slip moves the score a
     lot. For "b" it now writes a longer formula that still works
+  - last block of that run: **9 of 15** again (7, 8, 9, 9 over four lab tests), and it still
+    writes all 19 machines exactly. Of the 6 misses, 4 had shorts and 2 had gaps, all deep into
+    long circuits (300 to 500 lines). The sixth had neither: its wires were fine, but it brought
+    "a" to a gate input that needed "b". A third check (`circuit.logic`) works out what the
+    wiring computes from its labels: which gate sits where, and which signal goes to which
+    input. It agrees with the teacher on 182 of 182 lessons, and shorts + gaps + logic now agree
+    with the lab on all 15. Homework marks all three, and marks 240 circuits instead of 120 so
+    the corrections cover more formulas (`overnight_circuits4.py`, up to 8 more rounds)
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The

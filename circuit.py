@@ -472,6 +472,69 @@ def breaks(text):
     return bad
 
 
+def logic(text):
+    """The truth table the build-order text's wiring computes (16 characters, rows a b c d from 0000
+    to 1111), read from its labels: which gate sits where, and which signal each wire brings to
+    which gate input. None if a gate input has no wire or the wiring loops. The lab caught an AI
+    circuit with no short and no gap that brought "a" to an input that needed "b"."""
+    gates, feeds, wire_srcs, lamp = {}, {}, [], None
+    for line in text.strip().splitlines():
+        p = line.split()
+        if len(p) < 2 or p[0] != "#":
+            continue
+        try:
+            if p[1] in ("and", "or", "xor", "not") and len(p) >= 6 and p[-3] == "at":
+                x, z = int(p[-2]), int(p[-1])
+                gates[p[2]] = (p[1], [(x + ix, z + iz) for ix, iz in _cell(p[1])[1]])
+            elif p[1] == "wire" and "to" in p:
+                src = " ".join(p[2:p.index("to")])
+                feeds[(int(p[-2]), int(p[-1]))] = src
+                wire_srcs.append(src)
+            elif p[1] == "lamp":
+                lamp = (int(p[-2]), int(p[-1]))
+        except (ValueError, IndexError, AttributeError, TypeError):
+            return None
+    if gates:
+        unused = [g for g in gates if g not in wire_srcs]
+        if len(unused) != 1:
+            return None
+        root = unused[0]
+    elif wire_srcs:
+        if lamp is None or len(wire_srcs) != 1:
+            return None
+        root = wire_srcs[0]
+    else:                                   # "not a": the lamp sits on a lever's inverted copy
+        try:
+            lamps = [(x, z) for x, _, z, b in from_steps(text) if b == "redstone_lamp"]
+        except (ValueError, IndexError):
+            return None
+        spots = {(2, z): v for v, z in LEVER_Z.items()}
+        spots.update({(2, z + 6): "not " + v for v, z in LEVER_Z.items()})
+        if len(lamps) != 1 or lamps[0] not in spots:
+            return None
+        root = spots[lamps[0]]
+
+    def value(sig, env, depth=0):
+        if depth > 40:
+            raise RecursionError
+        if sig in env:
+            return env[sig]
+        if sig.startswith("not ") and sig[4:] in env:
+            return not env[sig[4:]]
+        op, ins = gates[sig]
+        vals = [value(feeds[c], env, depth + 1) for c in ins]
+        return (not vals[0]) if op == "not" else (all(vals) if op == "and" else any(vals) if op == "or"
+                                                 else vals[0] != vals[1])
+    out = ""
+    try:
+        for row in range(16):
+            env = {"a": bool(row & 8), "b": bool(row & 4), "c": bool(row & 2), "d": bool(row & 1)}
+            out += str(int(value(root, env)))
+    except (KeyError, RecursionError, IndexError):
+        return None
+    return out
+
+
 def from_steps(text):
     """The reverse of to_steps: the AI's text -> parts. Raises ValueError on anything malformed."""
     lines, ox, oz = [], 0, 0
