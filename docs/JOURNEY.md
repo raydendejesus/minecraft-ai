@@ -358,6 +358,14 @@ block, more for turns and climbs.
     287 teacher lessons weak, and on these 15 it found that one plus a 6-gate miss the other
     checks had also passed. All four together agree with the lab on all 15. Homework marks it
     from the next block on
+  - last lab test of that run: **9 of 15**, no better than its best for two tests, so it
+    stopped (19 of 19 machines still exact). Over the last seven lab tests: 7, 8, 9, 9, 9, 8, 9.
+    Everything up to 4 gates works except "b"; most of the 6- and 7-gate circuits are close
+    (8 to 15 rows right) but not there, and the mistakes come late, in the last wires it lays
+    near the levers, where the most wires already are. Another run with all four checks in the
+    homework is going (`overnight_circuits5.py`); if it stays stuck, the next idea is a tidier
+    teacher: every signal gets its own lane, so where a wire goes follows a simple rule instead of
+    depending on everything laid before it
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
