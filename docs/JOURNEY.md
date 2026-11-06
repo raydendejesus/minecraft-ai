@@ -341,6 +341,15 @@ block, more for turns and climbs.
     input. It agrees with the teacher on 182 of 182 lessons, and shorts + gaps + logic now agree
     with the lab on all 15. Homework marks all three, and marks 240 circuits instead of 120 so
     the corrections cover more formulas (`overnight_circuits4.py`, up to 8 more rounds)
+  - first lab test of that run: **9 of 15** again, but a different 9. The 7-gate circuit
+    "a xor not ((a xor (c and not d)) and (b xor (c xor d)))" worked for the first time, and
+    the other big misses were closer (8 to 14 rows right). "b" broke again: it wrote the lamp
+    and the one wire it needs, then didn't stop, and carried on with wires and a gate from some
+    other circuit. "b" on its own is a locked-away exam goal, so it is never in its lessons or
+    its homework (the bare inputs it does practise, like "a" and "not c", were 30 of 30 clean);
+    it has to work out from those that "b" is the same kind of circuit, and 3 lab tests in 5 it
+    did. The three checks agreed with the lab on 14 of 15; the odd one was a touch between two
+    wires that shorts() calls a short, but that worked in the lab
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
