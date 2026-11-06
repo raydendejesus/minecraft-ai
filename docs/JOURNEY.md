@@ -327,6 +327,12 @@ block, more for turns and climbs.
     passed, "b" included; the 7 misses were the 5- to 7-gate circuits (6 to 13 rows right). The
     homework checks agree: clean big circuits went from about 7 in 15 to 7–10 in 15, while the
     old lessons' best is still 10 of 15. More rounds are running
+  - 2 rounds later: **9 of 15**. Up to 4 gates still all pass; the 6 misses are 5 to 7 gates, but
+    closer than before (6 to 14 rows right, four of them 11 or more). In between, the design exam
+    dipped on the tiniest goals (0 gates: 0 of 1, 1 gate: 6 of 9), then came back to 100% the next
+    round. Only 10 small goals are locked away, and the AI has to work them out from 60 practice
+    ones (it practises "a", "c", "d", "not b" but never "b" itself), so one slip moves the score a
+    lot. For "b" it now writes a longer formula that still works
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
