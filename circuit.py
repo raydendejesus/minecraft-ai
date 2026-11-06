@@ -472,6 +472,65 @@ def breaks(text):
     return bad
 
 
+def weak(text):
+    """Wires whose signal dies out before reaching their gate input: redstone dust loses one
+    strength per block from 15, and only a repeater brings it back up to 15. Counted over each
+    signal's whole net (its source and every wire for it), since a wire can branch off another
+    one part-way. Repeater facing isn't checked, so this never calls a working wire weak because
+    of it. The lab caught an AI wire with its repeater one block early, so the run after it was
+    one block too long."""
+    seeds, nets, wires, cur = {}, {}, [], None
+    for v, z in LEVER_Z.items():
+        seeds[v] = (2, 0, z)
+        nets[v] = {(2, 0, z): "d", (2, 0, z + 1): "d", (2, 0, z + 2): "d"}
+        seeds["not " + v] = (2, 0, z + 6)
+        nets["not " + v] = {(2, 0, z + 6): "d"}
+    for line in text.strip().splitlines():
+        p = line.split()
+        if not p:
+            continue
+        if p[0] == "#":
+            cur = None
+            if len(p) >= 6 and p[1] in ("and", "or", "xor", "not") and p[-3] == "at":
+                x, z = int(p[-2]), int(p[-1])
+                ox, oz = _cell(p[1])[2]
+                seeds[p[2]] = (x + ox, 0, z + oz)
+                nets.setdefault(p[2], {})[seeds[p[2]]] = "d"
+            elif len(p) > 3 and p[1] == "wire" and "to" in p:
+                cur = " ".join(p[2:p.index("to")])
+                wires.append((cur, (int(p[-2]), 0, int(p[-1]))))
+                nets.setdefault(cur, {})
+            continue
+        if cur is None:
+            continue
+        for x, y, z, b in from_steps(line):
+            if b.startswith("redstone_wire"):
+                nets[cur][(x, y, z)] = "d"
+            elif b.startswith("unpowered_repeater"):
+                nets[cur][(x, y, z)] = "r"
+
+    level = {}
+    for name, cells in nets.items():
+        if name not in seeds:
+            continue
+        best = {seeds[name]: 15}
+        todo = [seeds[name]]
+        while todo:
+            c = todo.pop()
+            here = cells.get(c, "d")
+            for n, kind in cells.items():
+                flat = abs(n[0] - c[0]) + abs(n[2] - c[2]) == 1
+                if not flat or (n[1] != c[1] if "r" in (kind, here) else abs(n[1] - c[1]) > 1):
+                    continue
+                # a repeater fed any signal at all sends out 15; dust passes on one less
+                val = 15 if kind == "r" or here == "r" else best[c] - 1
+                if val > best.get(n, 0):
+                    best[n] = val
+                    todo.append(n)
+        level[name] = best
+    return [src for src, goal in wires if level.get(src, {}).get(goal, 0) < 1]
+
+
 def logic(text):
     """The truth table the build-order text's wiring computes (16 characters, rows a b c d from 0000
     to 1111), read from its labels: which gate sits where, and which signal each wire brings to

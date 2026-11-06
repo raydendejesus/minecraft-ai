@@ -350,6 +350,14 @@ block, more for turns and climbs.
     it has to work out from those that "b" is the same kind of circuit, and 3 lab tests in 5 it
     did. The three checks agreed with the lab on 14 of 15; the odd one was a touch between two
     wires that shorts() calls a short, but that worked in the lab
+  - next lab test: **8 of 15**. "b" broke the same way and ran on into unreadable lines. A
+    3-gate circuit that had always worked failed too, and none of the three checks saw why:
+    it put a repeater one block early on a raised wire, so the run after it was 16 blocks, one
+    more than redstone carries. A fourth check (`circuit.weak`) follows each signal's strength,
+    15 at its source, one less per block of dust, back to 15 at a repeater. It calls none of
+    287 teacher lessons weak, and on these 15 it found that one plus a 6-gate miss the other
+    checks had also passed. All four together agree with the lab on all 15. Homework marks it
+    from the next block on
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The

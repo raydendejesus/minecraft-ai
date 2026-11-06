@@ -1,9 +1,9 @@
 """Mark the designer's circuit homework: it writes circuits for practice formulas (never a locked
 exam goal), and every one that can't be read, has two signals' wires touching (a short) or has a
-wire that can't carry its signal (a gap, or not reaching its gate), or whose wiring computes the
-wrong thing (a signal brought to the wrong gate input), gets the teacher's circuit added to
+wire that can't carry its signal (a gap, not reaching its gate, or so long the signal dies out
+before it gets there: circuit.weak), or whose wiring computes the wrong thing (a signal brought to the wrong gate input), gets the teacher's circuit added to
 circuit_corrections.jsonl, which designer_data mixes into its practice more often. No lab needed:
-circuit.shorts() + breaks() + logic() agreed with the lab on all 15 of the AI's last lab circuits.
+shorts() + breaks() + weak() + logic() agreed with the lab on all 15 of the AI's last lab circuits.
 
     python circuit_corrections.py designer.pt 120
 """
@@ -49,7 +49,8 @@ def main():
         text = ai.build(f"redstone circuit {expr}")
         try:
             C.inputs_and_output(C.from_steps(text))
-            bad = bool(C.shorts(text)) or bool(C.breaks(text)) or C.logic(text) != table(expr)
+            bad = (bool(C.shorts(text)) or bool(C.breaks(text)) or bool(C.weak(text))
+                   or C.logic(text) != table(expr))
         except Exception:
             bad = True
         right, total = tally.get(g, (0, 0))
