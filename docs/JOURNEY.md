@@ -323,6 +323,10 @@ block, more for turns and climbs.
     one connected piece, reach its gate, and start from its own signal. On the teacher's lessons
     it finds nothing (0 of 300). On the AI's last 15 lab circuits, shorts + gaps agreed with the
     lab on 14: every one with either failed, every one with neither passed but one
+  - after 2 more rounds with homework marking gaps too: **8 of 15**. Every goal up to 4 gates
+    passed, "b" included; the 7 misses were the 5- to 7-gate circuits (6 to 13 rows right). The
+    homework checks agree: clean big circuits went from about 7 in 15 to 7–10 in 15, while the
+    old lessons' best is still 10 of 15. More rounds are running
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
