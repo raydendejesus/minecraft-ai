@@ -377,6 +377,17 @@ block, more for turns and climbs.
     wires went other ways than the teacher's), because the teacher's router picks each route from
     everything already laid, which is a lot for a small model to work out in its head. Lanes
     would make each route follow from a simple rule instead
+  - before building lanes, a check of that idea: only about a third of the teacher's wires
+    (29 to 35%) go differently because of wires laid before them, and in 5 of the 8 circuits
+    where the AI went off the teacher's way, its first slip was on a wire that doesn't depend
+    on any other. So lanes alone wouldn't fix it. What did stand out: in two failures its very
+    first slip was where it put the first gate. When the teacher's router gets stuck, it starts
+    the whole circuit again spread out wider, and nothing in the formula says when that will
+    happen. 1,393 of the 16,381 lessons were laid out that way, about 1 in 7 of the 6- and
+    7-gate ones, so for big circuits the AI saw two layouts it couldn't tell apart. Lessons now
+    always use the standard layout (`circuit.lesson`), and the wider ones went to
+    `circuit_lessons_with_wide.jsonl` (`standard_layout_only.py`): 14,988 lessons kept. Homework
+    skips formulas the teacher can't wire in the standard layout
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The

@@ -370,9 +370,16 @@ def build(expr):
 # inputs, each gate where it chose to put it, then each wire step by step. "# and g9 at 14 0" means
 # the lines below are counted from (14, 0); a wire's lines are plain positions. A straight run of
 # the same block is one line: "d 5 0 3 x-4" is 4 dust going west from (5, 0, 3).
-def lesson(expr):
-    """The teacher's circuit for a formula, as build-order text."""
-    build(expr)
+def lesson(expr, wide_ok=False):
+    """The teacher's circuit for a formula, as build-order text, always in the standard layout
+    (gaps 6 and 4). Raises RuntimeError if it can't be wired that way. build() spreads a circuit
+    out when the router gets stuck, but nothing in the formula says when that will happen, so a
+    lesson laid out wider is one the AI can't predict: 1 in 7 of the big circuit lessons were, and
+    two of its lab circuits failed from putting the first gate where the other layout puts it."""
+    if wide_ok:
+        build(expr)
+    else:
+        circuit(expr)
     return to_steps(PIECES)
 
 
