@@ -369,6 +369,14 @@ block, more for turns and climbs.
   - first lab test with all four checks in the homework: **9 of 15**, the same nine as before.
     The big misses: 6, 10, 12, 14 and 15 rows right of 16. More homework isn't moving it, so the
     lane teacher is being drawn up alongside, while this run carries on
+  - where the shorts are now: every one in the narrow strip between the levers and the first
+    gates (x 4 to 8), where all eight input signals cross to reach their gates. A wider strip
+    wouldn't help much: the teacher's own circuits only have about 4.5 spots per circuit where a
+    one-block slip would short, and doubling the strip only takes that to 3.9. The AI isn't
+    slipping by a block. It takes a different route altogether (in one circuit all 12 of its
+    wires went other ways than the teacher's), because the teacher's router picks each route from
+    everything already laid, which is a lot for a small model to work out in its head. Lanes
+    would make each route follow from a simple rule instead
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
