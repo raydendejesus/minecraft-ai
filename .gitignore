@@ -51,3 +51,5 @@ circuit_corrections_clearance1.jsonl
 clearance_*.txt
 speed_report.txt
 paused.json*
+circuit_corrections_with_wide.jsonl
+pvp_corrections.jsonl
