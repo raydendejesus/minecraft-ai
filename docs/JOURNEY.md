@@ -366,6 +366,9 @@ block, more for turns and climbs.
     homework is going (`overnight_circuits5.py`); if it stays stuck, the next idea is a tidier
     teacher: every signal gets its own lane, so where a wire goes follows a simple rule instead of
     depending on everything laid before it
+  - first lab test with all four checks in the homework: **9 of 15**, the same nine as before.
+    The big misses: 6, 10, 12, 14 and 15 rows right of 16. More homework isn't moving it, so the
+    lane teacher is being drawn up alongside, while this run carries on
 
 ## 26. Faster, without getting dumber
 Rayden: Minecraft can't wait 5 seconds between actions, but don't lose smarts for speed. The
